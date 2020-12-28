@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+
+  # Launches multiple client containers that will perform web browsing. For now
+  # they're just sending pings.
+  client:
+    image: netem-client
+    command: ping -i 3 www.google.com
+    networks:
+      - netem
+    deploy:
+      replicas: 3
+
+  daemon:
+    depends_on:
+      - client
+    image: netem-daemon
+    environment:
+      DOCKER_HOST: tcp://host.docker.internal:2375 # This works for WINDOWS
+    networks:
+      - netem
+    # Allows `tc` commands to be run without a RTNETLINK "not permitted" error
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  netem: {}
