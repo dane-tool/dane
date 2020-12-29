@@ -38,15 +38,14 @@ services:
   daemon:
     image: netem-daemon
     command: python /scripts/daemon.py
-    environment:
-      # This host address should work for Windows and Mac.
-      DOCKER_HOST: tcp://host.docker.internal:2375
-      # Whereas this host should work on Linux
-      # DOCKER_HOST: tcp://172.17.0.1:2375
     volumes:
+      # On linux we mount the docker socket directly.
       - type: bind
-        source: "../scripts/"
-        target: "/scripts/"
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: ../scripts/
+        target: /scripts/
 
 networks:
   default:

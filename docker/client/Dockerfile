@@ -3,8 +3,7 @@ FROM python:3.8
 # Metadata
 ARG BUILD_DATE
 LABEL maintainer="pgaddiso@ucsd.edu"
-LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.build-date=${BUILD_DATE}
+LABEL org.opencontainers.image.created=${BUILD_DATE}
 
 # Install apt dependencies for running network-stats
 RUN apt-get update && \
