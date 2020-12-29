@@ -28,6 +28,8 @@ make build # Set up images
 make run # Run the containerized network emulation
 ```
 
+![](docs/media/demo.gif)
+
 ## Software / References
 
 - [netem]: https://wiki.linuxfoundation.org/networking/netem
