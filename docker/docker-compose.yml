@@ -1,39 +1,72 @@
 version: "3.9"
 services:
 
-  # No network emulation is run
-  normal:
-    depends_on:
-      - daemon
-    image: netem-client
-    labels:
-      com.netem.behavior: ping
-    deploy:
-      replicas: 1
+  # # No network emulation is run
+  # normal:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-client
+  #   labels:
+  #     com.netem.behavior: ping
+  #   deploy:
+  #     replicas: 1
     
-  # Higher latency, huge packet loss and duplication
-  poor:
+  # # Higher latency, huge packet loss and duplication
+  # poor:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-client
+  #   labels:
+  #     com.netem.behavior: ping
+  #     com.netem.tc.delay: 100ms
+  #     com.netem.tc.loss: 50%
+  #     com.netem.tc.duplicate: 50%
+  #   deploy:
+  #     replicas: 1
+
+  # # Latency ranges a lot
+  # sporadic:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-client
+  #   labels:
+  #     com.netem.behavior: ping
+  #     com.netem.tc.delay: 50ms 50ms distribution normal
+  #   deploy:
+  #     replicas: 1
+
+  # # Just sleeps!
+  # sleeper:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-client
+  #   labels:
+  #     com.netem.behavior: none
+  #   deploy:
+  #     replicas: 1
+  
+  # Runs a client script
+  scripter:
     depends_on:
       - daemon
     image: netem-client
     labels:
-      com.netem.behavior: ping
-      com.netem.tc.delay: 100ms
-      com.netem.tc.loss: 50%
-      com.netem.tc.duplicate: 50%
+      com.netem.behavior: script
+    volumes:
+      - type: bind
+        source: ../scripts/
+        target: /scripts/
     deploy:
       replicas: 1
 
-  # Latency ranges a lot
-  sporadic:
-    depends_on:
-      - daemon
-    image: netem-client
-    labels:
-      com.netem.behavior: ping
-      com.netem.tc.delay: 50ms 50ms distribution normal
-    deploy:
-      replicas: 1
+  # # No command given -- should also sleep but raise warning.
+  # nothing:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-client
+  #   labels: {}
+  #   deploy:
+  #     replicas: 1
 
   daemon:
     image: netem-daemon
@@ -45,8 +78,8 @@ services:
       # DOCKER_HOST: tcp://172.17.0.1:2375
     volumes:
       - type: bind
-        source: "../scripts/"
-        target: "/scripts/"
+        source: ../scripts/
+        target: /scripts/
 
 networks:
   default:
