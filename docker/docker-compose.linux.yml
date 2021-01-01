@@ -1,53 +1,14 @@
 version: "3.9"
 services:
 
-  # No network emulation is run
-  normal:
-    depends_on:
-      - daemon
-    image: netem-client
-    labels:
-      com.netem.behavior: ping
-    deploy:
-      replicas: 1
-    
-  # Higher latency, huge packet loss and duplication
-  poor:
-    depends_on:
-      - daemon
-    image: netem-client
-    labels:
-      com.netem.behavior: ping
-      com.netem.tc.delay: 100ms
-      com.netem.tc.loss: 50%
-      com.netem.tc.duplicate: 50%
-    deploy:
-      replicas: 1
-
-  # Latency ranges a lot
-  sporadic:
-    depends_on:
-      - daemon
-    image: netem-client
-    labels:
-      com.netem.behavior: ping
-      com.netem.tc.delay: 50ms 50ms distribution normal
-    deploy:
-      replicas: 1
-
   daemon:
-    image: netem-daemon
-    command: python /scripts/daemon.py
+    environment:
+      DOCKER_HOST: null
     volumes:
-      # On linux we mount the docker socket directly.
+      # On linux we mount the docker socket directly!
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
       - type: bind
         source: ../scripts/
         target: /scripts/
-
-networks:
-  default:
-    name: netem
-    driver: bridge

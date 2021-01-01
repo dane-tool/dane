@@ -2,8 +2,12 @@
 .PHONY: start run up
 d ?= 
 start run up: down
+# Start up all of the containers defined in our docker compose yaml. If Linux is
+# being used then the linux override will be applied so that the traffic control
+# is able to work!
 	docker-compose \
 	-p netem -f docker/docker-compose.yml \
+	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/docker-compose.linux.yml,) \
 	up \
 	$(if $(d),-d,)
 
@@ -11,7 +15,8 @@ start run up: down
 stop down:
 	docker-compose \
 	-p netem -f docker/docker-compose.yml \
-	down
+	down \
+	--remove-orphans
 
 # .PHONY: init
 # DOCKER_VER = "19"

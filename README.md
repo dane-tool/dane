@@ -8,7 +8,7 @@ Generate network communication data for target tasks in diverse network conditio
 - [Example](#example)
 - [Software / References](#software--references)
 
-**Note:** This is currently being developed primarily on **Windows 10**. If you are on Windows 10 you *must* use the **Hyper-V backend** for Docker. The WSL2 backend doesn't seem to work. This runs on Linux with some modifications to how the daemon is mounted (needs /var/run/docker.sock) -- rename `docker-compose.linux.yml` to `docker-compose.yml`. Mac is a mystery at the moment since my old Mac is incapable of running Docker (!), but theoretically Mac should work the same as Windows.
+**Note:** This is currently being developed primarily on **Windows 10** and **Linux**. If you are on Windows 10 you *must* use the **Hyper-V backend** for Docker. The WSL2 backend doesn't seem to work. This runs on Linux by using a docker-compose override which is added automatically. Mac is a mystery at the moment since my old Mac is incapable of running Docker (!), but theoretically Mac should work the same as Windows.
 
 ## Approach
 
