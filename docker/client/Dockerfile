@@ -19,6 +19,10 @@ RUN pip install \
 #
 # RUN ...
 
+# #* VPN-RELATED SOFTWARE
+# RUN apt-get install -y openconnect openvpn net-tools && \
+#     curl -O https://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script
+
 # Additional/nice-to-have software:
 #
 # - git for cloning in source code
