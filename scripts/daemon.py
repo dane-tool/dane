@@ -89,8 +89,9 @@ def set_up_client(event):
 
     ## Network-stats collection
 
-    # TODO: Add data directory mount to save results; Run network-stats!
-    # client.exec_run(network_stats_command, detach=True)
+    network_stats_command = 'python scripts/client/collection.py'
+
+    client.exec_run(network_stats_command, detach=True)
 
 # TODO: Implement timeout.
 # 
