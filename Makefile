@@ -1,7 +1,7 @@
 
 .PHONY: start run up
 d ?= 
-start run up: down
+start run up:# down
 # Start up all of the containers defined in our docker compose yaml. If Linux is
 # being used then the linux override will be applied so that the traffic control
 # is able to work!

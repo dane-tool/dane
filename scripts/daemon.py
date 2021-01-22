@@ -1,5 +1,8 @@
+import asyncio
 import docker
+import time
 import logging
+import signal
 
 # Docker logs only show stdout of PID 1 -- so we'll write directly to that!
 logger = logging.basicConfig(
@@ -25,12 +28,14 @@ API = docker.from_env()
 
 # We'll do the setup for each container as it is created. To do this, we'll
 # listen for docker 'start' events, and use a callback.
-def set_up_client(event):
+def setup_client(client):
     """
-    Callback to docker startup event listener
+    Callback to docker startup event listener. Runs, in order:
+    1. Network emulation
+    2. Behavior launching
+    3. Network-stats collection
     """
 
-    client = API.containers.get(event['id'])
     logging.info(f"Setting up `{client.name}`")
 
     ## Network emulation
@@ -91,24 +96,106 @@ def set_up_client(event):
 
     network_stats_command = 'python scripts/client/collection.py'
 
-    client.exec_run(network_stats_command, detach=True)
+    client.exec_run(
+        redirect_to_out(network_stats_command),
+        detach=True
+    )
 
-# TODO: Implement timeout.
-# 
+def teardown_client(client):
+    """
+    To be used with callback to daemon interrupt listener. Runs, in order:
+    1. Interrupt network-stats collection
+    2. Interrupt behavior
+    3. Stop container
+    """
+
+    logging.info(f'Tearing down `{client.name}`.')
+
+    # Interrupt the collection script and behavior script with SIGINT. We'll
+    # first need to find the PIDs running these scripts.
+    pattern = lambda script: f"'python .*/{script}\.py$'"
+    client.exec_run(f"pkill {pattern('collection')}")
+    client.exec_run(f"pkill {pattern('behavior')}")
+
 # The daemon doesn't need to wait forever for setup. Also, after setup is
 # complete, the containers should run for a set amount of time then be
 # interrupted and cleaned up.
-for event in API.events(
-        # We're only looking at containers that were started from our docker
-        # compose project.
-        filters={
-            'event': 'start',
-            'type': 'container',
-            'label': f'com.docker.compose.project={PROJECT_NAME}'
-        },
-        decode=True
-    ):
-    labels = event['Actor']['Attributes']
-    is_daemon = labels.get('com.docker.compose.service') == 'daemon'
-    if not is_daemon:
-        set_up_client(event)
+def listen_for_client_startup(timeout=15):
+    """
+
+    Returns a list of clients that have been set up.
+    """
+
+    # Register the alarm signal to send a timeout error
+    def alarm_handler(signum, frame):
+        raise TimeoutError('Stop listening for events!')
+    signal.signal(signal.SIGALRM, alarm_handler)
+    # Raise the timeout error after n seconds
+    signal.alarm(timeout)
+
+    logging.info(f'Listening for docker startup events. Will stop listening after {timeout} seconds.')
+
+    clients = []
+
+    # Listen to docker events and handle client container setup when they start.
+    # If we see a TimeoutError though, then we'll halt and return.
+    try:
+        for event in API.events(
+                # We're only looking at containers that were started from our
+                # docker compose project.
+                filters={
+                    'event': 'start',
+                    'type': 'container',
+                    'label': f'com.docker.compose.project={PROJECT_NAME}'
+                },
+                decode=True
+            ):
+            labels = event['Actor']['Attributes']
+            is_daemon = labels.get('com.docker.compose.service') == 'daemon'
+            if not is_daemon:
+                client = API.containers.get(event['id'])
+                clients.append(client)
+                setup_client(client)
+
+    except TimeoutError:
+        logging.info('Timeout seen.')
+
+    finally:
+        logging.info('No longer listening for docker events.')
+        return clients
+
+def handle_interrupt(clients):
+
+    logging.info('Daemon interrupted!')
+
+    for client in clients:
+        teardown_client(client)
+
+    exit()
+
+def listen_for_interrupt(handler, timeout=None):
+    """
+
+    Parameters
+    ----------
+    handler : function
+        Expects a function with no arguments.
+    timeout : seconds, optional
+        If present, will automatically trigger interrupt after this amount of
+        time.
+    """
+
+    logging.info('Listening for daemon interrupt.')
+
+    # TODO: If a timeout has been specified, halt after that amount of time
+
+    # If an Interrupt has been seen, run teardown for all of the clients.
+    signal.signal(signal.SIGINT, lambda signum, frame: handler())
+
+if __name__ == "__main__":
+
+    clients = listen_for_client_startup(timeout=15)
+    listen_for_interrupt(handler=lambda: handle_interrupt(clients))
+    
+    # While we're waiting for some signal the daemon can just chill out!
+    signal.pause()
