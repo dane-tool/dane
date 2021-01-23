@@ -6,15 +6,15 @@ from pathlib import Path
 
 # TODO: Eventually add naming convention for network conditions and behavior...
 # or maybe just embed metadata as frontmatter, like a csvy file.
+
+# This is just to find the container ID for the filename.
 container_id = (
     os.popen("cat /proc/self/cgroup | head -1 | tr '/' '\n' | tail -1")
     .read()
     .strip()
 )
-
-date = datetime.date.today().isoformat()
-
-filename = f"{date}_{container_id}.csv"
+timestamp = datetime.datetime.now().strftime('%Y%m%dT%H%M%S')
+filename = f"{timestamp}_{container_id}.csv"
 
 datadir = "/data/"
 

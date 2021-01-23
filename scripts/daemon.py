@@ -101,6 +101,8 @@ def setup_client(client):
         detach=True
     )
 
+    logging.info(f'Network stats on `{client.name}` running.')
+
 def teardown_client(client):
     """
     To be used with callback to daemon interrupt listener. Runs, in order:
@@ -111,11 +113,26 @@ def teardown_client(client):
 
     logging.info(f'Tearing down `{client.name}`.')
 
-    # Interrupt the collection script and behavior script with SIGINT. We'll
-    # first need to find the PIDs running these scripts.
-    pattern = lambda script: f"'python .*/{script}\.py$'"
-    client.exec_run(f"pkill {pattern('collection')}")
-    client.exec_run(f"pkill {pattern('behavior')}")
+    # Interrupt all processes except for the main sleep. It is important that
+    # we interrupt rather than kill, otherwise the network-stats data will not
+    # be written to the file!
+    #
+    # We don't detach here because we want to wait for the interrupt to succeed.
+    client.exec_run('pkill --signal SIGINT -f network-stats')
+    logging.info('Network-stats interrupted.')
+    client.exec_run('pkill -f --inverse "sleep infinity" --signal SIGINT')
+    logging.info('All other tasks interrupted.')
+
+    # After the client has been fully interrupted, it can be stopped.
+    client.stop()
+    logging.info(f'`{client.name}` stopped.')
+
+    # # Interrupt the collection script and behavior script with SIGINT. We'll
+    # # first need to find the PIDs running these scripts.
+    # pattern = lambda script: f"'python .*/{script}\.py$'"
+    # client.exec_run(f"pkill -f {pattern('collection')}")
+    # client.exec_run(f"pkill -f network-stats")
+    # client.exec_run(f"pkill -f {pattern('behavior')}")
 
 # The daemon doesn't need to wait forever for setup. Also, after setup is
 # complete, the containers should run for a set amount of time then be
@@ -171,7 +188,9 @@ def handle_interrupt(clients):
     for client in clients:
         teardown_client(client)
 
-    exit()
+    logging.info('All clients stopped, Daemon will now exit.')
+    logging.info('Check `/data` for the network-stats output. Thanks for using this tool!')
+    exit(0)
 
 def listen_for_interrupt(handler, timeout=None):
     """
@@ -194,7 +213,7 @@ def listen_for_interrupt(handler, timeout=None):
 
 if __name__ == "__main__":
 
-    clients = listen_for_client_startup(timeout=15)
+    clients = listen_for_client_startup(timeout=8)
     listen_for_interrupt(handler=lambda: handle_interrupt(clients))
     
     # While we're waiting for some signal the daemon can just chill out!
