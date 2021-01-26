@@ -1,10 +1,5 @@
 FROM python:3.8
 
-# Metadata
-ARG BUILD_DATE
-LABEL maintainer="pgaddiso@ucsd.edu"
-LABEL org.opencontainers.image.created=${BUILD_DATE}
-
 # Install apt dependencies for running network-stats
 RUN apt-get update && \
     apt-get install -y \
@@ -49,4 +44,9 @@ RUN apt-get install -y \
 
 RUN git clone https://github.com/viasat/network-stats
 
-CMD sleep infinity
+CMD ["sleep", "infinity"]
+
+# Metadata
+ARG BUILD_DATE
+LABEL maintainer="pgaddiso@ucsd.edu"
+LABEL org.opencontainers.image.created=${BUILD_DATE}

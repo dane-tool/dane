@@ -205,6 +205,7 @@ def listen_for_interrupt(handler, timeout=None):
     """
 
     logging.info('Listening for daemon interrupt.')
+    logging.warning('Please run `docker kill -s SIGINT netem_daemon_1` to stop this service. Failure to do so will result in data loss.')
 
     # TODO: If a timeout has been specified, halt after that amount of time
 
