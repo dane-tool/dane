@@ -45,19 +45,19 @@ services:
   #   deploy:
   #     replicas: 1
   
-  # Runs a client script
-  scripter:
-    depends_on:
-      - daemon
-    image: netem-client
-    labels:
-      com.netem.behavior: script
-    volumes:
-      - ../scripts/:/scripts/
-      - ../network-stats/:/network-stats/
-      - ../data/:/data/
-    deploy:
-      replicas: 1
+  # # Runs a client script
+  # scripter:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-client
+  #   labels:
+  #     com.netem.behavior: script
+  #   volumes:
+  #     - ../scripts/:/scripts/
+  #     - ../network-stats/:/network-stats/
+  #     - ../data/:/data/
+  #   deploy:
+  #     replicas: 1
 
   # # No command given -- should also sleep but raise warning.
   # nothing:
@@ -68,18 +68,51 @@ services:
   #   deploy:
   #     replicas: 1
 
+  client:
+    depends_on:
+      - daemon
+      - router
+    image: netem-client
+    networks:
+      intranet:
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ../scripts/:/scripts/
+      - ../network-stats/:/network-stats/
+      - ../data/:/data/
+    labels:
+      com.netem.type: client
+      com.netem.behavior: ping
+
+  router:
+    depends_on:
+      - daemon
+    image: netem-router
+    networks:
+      default:
+        priority: 1000 # Ensure we use the eth0 interface
+      intranet:
+        aliases:
+          - router
+    cap_add:
+      - NET_ADMIN
+    labels:
+      com.netem.type: router
+      com.netem.tc.delay: 100ms
+
   daemon:
     image: netem-daemon
     command: python /scripts/daemon.py
     environment:
-      # This host address should work for Windows and Mac.
+      # This host address should work for Windows and Mac. For Linux a different
+      # approach is needed in order to allow Docker within Docker -- see the
+      # override file.
       DOCKER_HOST: tcp://host.docker.internal:2375
-      # Whereas this host should work on Linux
-      # DOCKER_HOST: tcp://172.17.0.1:2375
     volumes:
       - ../scripts/:/scripts/
+    labels:
+      com.netem.type: daemon
 
 networks:
-  default:
-    name: netem
-    driver: bridge
+  intranet:

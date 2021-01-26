@@ -47,6 +47,11 @@ ifeq ($(only),all)
 	-f docker/daemon/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
 	-t netem-daemon:$(tag) .
+
+	docker build \
+	-f docker/router/Dockerfile \
+	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
+	-t netem-router:$(tag) .
 else
 	docker build \
 	-f docker/$(only)/Dockerfile \
@@ -60,6 +65,7 @@ clean: stop
 	docker rmi netem-controller
 	docker rmi netem-client
 	docker rmi netem-daemon
+	docker rmi netem-router
 
 .PHONY: exec
 service ?= daemon
@@ -79,8 +85,9 @@ sh:
 	netem-daemon sh
 
 .PHONY: interrupt
+name ?= netem_daemon_1
 interrupt:
-# Send a SIGINT signal to a container
+# Send a SIGINT signal to a container, defaulting to the daemon.
 	docker kill --signal SIGINT $(name)
 
 .PHONY: delay

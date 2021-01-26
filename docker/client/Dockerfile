@@ -1,5 +1,14 @@
 FROM python:3.8
 
+# Additional/nice-to-have software:
+#
+# - git for cloning in source code
+# - iproute2 for network emulation ability
+RUN apt-get update && \
+    apt-get install -y \
+    git \
+    iproute2
+
 # Install apt dependencies for running network-stats
 RUN apt-get update && \
     apt-get install -y \
@@ -9,6 +18,8 @@ RUN apt-get update && \
 RUN pip install \
     impacket \
     pcapy
+
+RUN git clone https://github.com/viasat/network-stats
 
 # Install apt dependencies for web browsing
 RUN apt-get update && \
@@ -30,20 +41,13 @@ RUN curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest \
 RUN pip install \
     selenium
 
-# #* VPN-RELATED SOFTWARE
-# RUN apt-get install -y openconnect openvpn net-tools && \
-#     curl -O https://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script
+#* VPN-RELATED SOFTWARE
+RUN apt-get install -y openconnect && \
+    curl -O https://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script
 
-# Additional/nice-to-have software:
-#
-# - git for cloning in source code
-# - iproute2 for network emulation ability
-RUN apt-get install -y \
-    git \
-    iproute2
-
-RUN git clone https://github.com/viasat/network-stats
-
+# ADD scripts/init/client.sh /
+# RUN chmod +x /client.sh
+# ENTRYPOINT ["/client.sh"]
 CMD ["sleep", "infinity"]
 
 # Metadata
