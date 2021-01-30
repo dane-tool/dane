@@ -3,12 +3,61 @@
 Generate network communication data for target tasks in diverse network conditions.
 
 **Table of contents**
+- [What does it do](#what-does-it-do)
+- [How to use](#how-to-use)
 - [Approach](#approach)
 - [Requirements](#requirements)
 - [Example](#example)
 - [Software / References](#software--references)
 
 **Note:** This is currently being developed primarily on **Windows 10** and **Linux**. If you are on Windows 10 you *must* use the **Hyper-V backend** for Docker. The WSL2 backend doesn't seem to work. This runs on Linux by using a docker-compose override which is added automatically. Mac is a mystery at the moment since my old Mac is incapable of running Docker (!), but theoretically Mac should work the same as Windows.
+
+## What does it do
+
+TODO
+
+## How to use
+
+1. Clone this repository with the submodule
+   ```
+   git clone --recurse-submodules
+   ```
+   then navigate to this directory.
+
+2. Build the Docker images
+   ```
+   make build
+   ```
+
+3. Specify target conditions and behaviors
+
+   TODO. Modify the `docker/docker-compose.yml` file.
+
+4. Run the tool, deploying all containers specified in the Compose file
+   ```
+   make run
+   ```
+
+5. Interrupt the tool
+   
+   The first step of gracefully stopping this tool is to send an interrupt signal to the daemon.
+   ```
+   docker kill -s SIGINT netem_daemon_1
+   ```
+
+   The daemon will catch the interrupt and tear down all containers. Collected data will be present in `data/`.
+
+6. Finish with the tool completely
+   
+   Once you are completely done with the tool, you can ensure all aspects of the tool are stopped.
+   ```
+   make stop
+   ```
+   And you can remove the built Docker images from your machine with
+   ```
+   make clean
+   ```
+   (you will need to rebuild the images if you choose to run this)
 
 ## Approach
 
@@ -24,7 +73,9 @@ Generate network communication data for target tasks in diverse network conditio
 
 ## Requirements
 
-This project requires [**Docker 19.03+**](https://docs.docker.com/get-docker/) and [**Docker Compose 1.27+**](https://docs.docker.com/compose/install/) (on Windows and Mac this is included with your installation of Docker Desktop) in order to run.
+This project runs on Linux, Mac, and Windows Pro or Education (Hyper-V must be available).
+
+You will need [**Docker 19.03+**](https://docs.docker.com/get-docker/) and [**Docker Compose 1.27+**](https://docs.docker.com/compose/install/) (on Windows and Mac this is included with your installation of Docker Desktop) in order to run.
 
 Finally, [**GNU Make**](https://www.gnu.org/software/make/) is used to make running specific tasks easier (by just running `make <target>` rather than running a `docker` or `docker-compose` command directly). If you're on Windows I recommend using **GitBash** as your main terminal, and referencing [this link](https://stackoverflow.com/questions/32127524/how-to-install-and-use-make-in-windows) for installing make. If you're on Mac you can use homebrew to `brew install make`.
 
