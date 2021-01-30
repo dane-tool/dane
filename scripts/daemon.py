@@ -148,8 +148,6 @@ def setup_client(client):
     # We don't want to continue with behavior launching and data collection
     # until we've successfully connected to the vpn, so we'll run openconnect
     # in a --background mode and we can wait for the foreground process to exit.
-    #
-    # Determining whether it exited due to a success or an error is a TODO item.
     exitcode, output = client.exec_run([
         'sh', '-c',
         'echo "$VPN_PASSWORD" \
@@ -280,9 +278,8 @@ def listen_for_container_startup(timeout=15):
     except TimeoutError:
         logging.info('Timeout seen.')
 
-    finally:
-        logging.info('No longer listening for docker events.')
-        return routers, clients
+    logging.info('No longer listening for docker events.')
+    return routers, clients
 
 def handle_interrupt(routers, clients):
 
