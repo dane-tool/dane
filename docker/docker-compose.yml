@@ -81,6 +81,8 @@ services:
       - ../scripts/:/scripts/
       - ../network-stats/:/network-stats/
       - ../data/:/data/
+    env_file:
+      - ../.env
     labels:
       com.netem.type: client
       com.netem.behavior: ping
