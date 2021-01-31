@@ -1,0 +1,11 @@
+{
+    "vpn_server": "vpn.ucsd.edu",
+    "conditions": {
+        "latency": [
+            "100ms"
+        ],
+        "bandwidth": [
+            "5Mbps"
+        ]
+    }
+}

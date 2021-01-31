@@ -9,9 +9,12 @@
 # permitted.
 # 
 
-FROM alpine:latest
+# FROM alpine:latest
+FROM python:3.8-alpine
 
 RUN apk add --update iproute2 iptables
+RUN pip install \
+    tcconfig
 
 # ADD scripts/init/router.sh /
 # RUN chmod +x /router.sh

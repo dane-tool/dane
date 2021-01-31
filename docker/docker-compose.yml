@@ -99,7 +99,8 @@ services:
       - NET_ADMIN
     labels:
       com.netem.type: router
-      com.netem.tc.delay: 100ms
+      com.netem.tc.latency: 100ms
+      com.netem.tc.bandwidth: 20Mbps
 
   daemon:
     image: netem-daemon

@@ -75,30 +75,38 @@ def setup_router(router):
 
     ## Network emulation
 
-    # Start by getting all traffic control labels. These are rules that we will
-    # directly use to emulate conditions.
-    #
-    # We end up with a mapping of tc rules to their arguments.
-    # e.g. {"delay": "100ms 20ms distribution normal"}
-    #
-    # /\/\/\/\/\/\/\/\
-    #! TODO: This does *not* work for bandwidth -- which is very important.
-    # Critical that we fix this and add bandwidth support.
-    #
-    # Basically: THIS NEEDS TO BE REWORKED.
-    #
-    # See notes on "Netem bandwidth limiting" for the proper commands.
-    # \/\/\/\/\/\/\/\/
+    # # Start by getting all traffic control labels. These are rules that we will
+    # # directly use to emulate conditions.
+    # #
+    # # We end up with a mapping of tc rules to their arguments.
+    # # e.g. {"delay": "100ms 20ms distribution normal"}
+    # #
+    # # /\/\/\/\/\/\/\/\
+    # #! TODO: This does *not* work for bandwidth -- which is very important.
+    # # Critical that we fix this and add bandwidth support.
+    # #
+    # # Basically: THIS NEEDS TO BE REWORKED.
+    # #
+    # # See notes on "Netem bandwidth limiting" for the proper commands.
+    # # \/\/\/\/\/\/\/\/
     
-    rule_names = [label for label in router.labels if label.startswith(LABEL_PREFIX+'tc')]
-    rules = {
-        name.split('.')[-1]: router.labels.get(name)
-        for name in rule_names
-    }
+    # rule_names = [label for label in router.labels if label.startswith(LABEL_PREFIX+'tc')]
+    # rules = {
+    #     name.split('.')[-1]: router.labels.get(name)
+    #     for name in rule_names
+    # }
 
-    # tc will take in all rules and arguments as simply space separated.
-    rule_string = ' '.join([f"{k} {v}" for k,v in rules.items()])
-    tc_command = f"tc qdisc add dev eth0 root netem {rule_string}"
+    # # tc will take in all rules and arguments as simply space separated.
+    # rule_string = ' '.join([f"{k} {v}" for k,v in rules.items()])
+    # tc_command = f"tc qdisc add dev eth0 root netem {rule_string}"
+
+    latency = router.labels.get(LABEL_PREFIX+'tc.latency')
+    bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
+
+    # TODO: You know what? We could totally have the router run a pingtest to
+    # get the current latency before injecting the additional latency...
+
+    tc_command = f'tcset eth0 --delay {latency} --rate {bandwidth} --direction incoming'
 
     router.exec_run(
         tc_command
