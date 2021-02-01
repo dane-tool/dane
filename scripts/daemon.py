@@ -105,13 +105,7 @@ def setup_router(router):
 
     # TODO: You know what? We could totally have the router run a pingtest to
     # get the current latency before injecting the additional latency...
-
-    tc_command = f'tcset eth0 --delay {latency}'
-    router.exec_run(
-        tc_command
-    )
-
-    tc_command = f'tcset eth0 --rate {bandwidth} --direction incoming'
+    tc_command = f'tcset eth0 --delay {latency} --rate {bandwidth} --direction incoming'
     router.exec_run(
         tc_command
     )

@@ -15,10 +15,8 @@ with open('/compose/parts.yml', 'r') as infile:
 # Our compose file to write
 compose = copy.deepcopy(compose_template)
 
-# Get all desired (latency, bandwidth) pairs
-condition_pairs = list(itertools.product(
-    config['conditions']['latency'], config['conditions']['bandwidth']
-))
+# Get all desired network conditions
+conditions = config['conditions']
 
 # Get all target behavior scripts to run
 behaviors = config['behaviors']
@@ -28,10 +26,10 @@ behaviors = config['behaviors']
 #
 # Within each set of network conditions, add `client` services for each target
 # behavior, connected to the proper network.
+for condition in conditions:
 
-# NOTE: For now (for simplicity) we're only using one set of conditions. We'll
-# worry about support multiple conditions at a later time.
-for latency, bandwidth in condition_pairs[:1]:
+    latency = condition['latency']
+    bandwidth = condition['bandwidth']
 
     # Create the network and router referencing it.
     network = copy.deepcopy(parts['network'])
@@ -67,5 +65,4 @@ with open('/compose/docker-compose.yml', 'w') as outfile:
         '\n'
     ])
 
-    # https://stackoverflow.com/questions/13518819/avoid-references-in-pyyaml
     yaml.dump(compose, outfile)

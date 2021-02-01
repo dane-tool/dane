@@ -2,36 +2,69 @@
 # Please do not edit, your changes will be overwritten during the next run.
 
 networks:
-  50ms-100mbit: {}
+  0ms-100Mbps: {}
+  50ms-10Mbps: {}
 services:
-  client-50ms-100mbit-ping:
+  client-0ms-100Mbps-ping:
     cap_add:
     - NET_ADMIN
     depends_on:
     - daemon
-    - router-50ms-100mbit
+    - router-0ms-100Mbps
     image: netem-client
     labels:
       com.netem.behavior: ping
       com.netem.type: client
     networks:
-    - 50ms-100mbit
+    - 0ms-100Mbps
     volumes:
     - ../../scripts/:/scripts/
     - ../../network-stats/:/network-stats/
     - ../../data/:/data/
-  client-50ms-100mbit-script:
+  client-0ms-100Mbps-script:
     cap_add:
     - NET_ADMIN
     depends_on:
     - daemon
-    - router-50ms-100mbit
+    - router-0ms-100Mbps
     image: netem-client
     labels:
       com.netem.behavior: script
       com.netem.type: client
     networks:
-    - 50ms-100mbit
+    - 0ms-100Mbps
+    volumes:
+    - ../../scripts/:/scripts/
+    - ../../network-stats/:/network-stats/
+    - ../../data/:/data/
+  client-50ms-10Mbps-ping:
+    cap_add:
+    - NET_ADMIN
+    depends_on:
+    - daemon
+    - router-50ms-10Mbps
+    image: netem-client
+    labels:
+      com.netem.behavior: ping
+      com.netem.type: client
+    networks:
+    - 50ms-10Mbps
+    volumes:
+    - ../../scripts/:/scripts/
+    - ../../network-stats/:/network-stats/
+    - ../../data/:/data/
+  client-50ms-10Mbps-script:
+    cap_add:
+    - NET_ADMIN
+    depends_on:
+    - daemon
+    - router-50ms-10Mbps
+    image: netem-client
+    labels:
+      com.netem.behavior: script
+      com.netem.type: client
+    networks:
+    - 50ms-10Mbps
     volumes:
     - ../../scripts/:/scripts/
     - ../../network-stats/:/network-stats/
@@ -45,18 +78,34 @@ services:
       com.netem.type: daemon
     volumes:
     - ../../scripts/:/scripts/
-  router-50ms-100mbit:
+  router-0ms-100Mbps:
     cap_add:
     - NET_ADMIN
     depends_on:
     - daemon
     image: netem-router
     labels:
-      com.netem.tc.bandwidth: 100mbit
+      com.netem.tc.bandwidth: 100Mbps
+      com.netem.tc.latency: 0ms
+      com.netem.type: router
+    networks:
+      0ms-100Mbps:
+        aliases:
+        - router
+      default:
+        priority: 1000
+  router-50ms-10Mbps:
+    cap_add:
+    - NET_ADMIN
+    depends_on:
+    - daemon
+    image: netem-router
+    labels:
+      com.netem.tc.bandwidth: 10Mbps
       com.netem.tc.latency: 50ms
       com.netem.type: router
     networks:
-      50ms-100mbit:
+      50ms-10Mbps:
         aliases:
         - router
       default:
