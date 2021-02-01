@@ -1,31 +1,42 @@
 
 .PHONY: start run up
 d ?= 
-start run up:# down
+start run up: init
 # Start up all of the containers defined in our docker compose yaml. If Linux is
 # being used then the linux override will be applied so that the traffic control
 # is able to work!
 	docker-compose \
-	-p netem -f docker/docker-compose.yml \
-	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/docker-compose.linux.yml,) \
+	-p netem -f docker/compose/docker-compose.yml \
+	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,) \
+	up \
+	$(if $(d),-d,)
+
+.PHONY: raw
+raw:
+# Start up all containers *without* creating a new compose file first.
+	docker-compose \
+	-p netem -f docker/compose/docker-compose.yml \
+	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,) \
 	up \
 	$(if $(d),-d,)
 
 .PHONY: stop
 stop down:
 	docker-compose \
-	-p netem -f docker/docker-compose.yml \
+	-p netem -f docker/compose/docker-compose.yml \
 	down \
 	--remove-orphans
 
-# .PHONY: init
-# DOCKER_VER = "19"
-# COMPOSE_VER = "1.27"
-# init:
-# # Make sure docker and docker-compose are installed. Determine operating system
-# # and set up dotenv file.
-# 	$(if $(shell [ "`docker version -f {{.Server.Version}}`" \< $(DOCKER_VER) ] && echo lower),$(error "Please upgrade Docker to at least version $(DOCKER_VER)!"),$(info "Docker version okay."))
-# 	$(if $(shell [ "`docker-compose version --short`" \< $(COMPOSE_VER) ] && echo lower),$(error "Please upgrade Compose to at least version $(COMPOSE_VER)!"),$(info "Compose version okay."))
+.PHONY: init
+init:
+# Build the compose file from given configuration in config.py
+	docker run \
+	--rm \
+	-v $(PWD)/scripts/setup/build_compose.py:/build_compose.py \
+	-v $(PWD)/config.json:/config.json \
+	-v $(PWD)/docker/compose:/compose \
+	netem-daemon \
+	python build_compose.py
 
 .PHONY: build
 tag ?= latest
@@ -73,7 +84,7 @@ command ?= sh
 exec:
 # Exec into a shell for a given service.
 	docker-compose \
-	-p netem -f docker/docker-compose.yml \
+	-p netem -f docker/compose/docker-compose.yml \
 	exec $(service) $(command)
 
 .PHONY: sh

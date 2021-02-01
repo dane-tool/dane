@@ -106,8 +106,12 @@ def setup_router(router):
     # TODO: You know what? We could totally have the router run a pingtest to
     # get the current latency before injecting the additional latency...
 
-    tc_command = f'tcset eth0 --delay {latency} --rate {bandwidth} --direction incoming'
+    tc_command = f'tcset eth0 --delay {latency}'
+    router.exec_run(
+        tc_command
+    )
 
+    tc_command = f'tcset eth0 --rate {bandwidth} --direction incoming'
     router.exec_run(
         tc_command
     )
@@ -173,7 +177,9 @@ def setup_client(client):
 
     ## Network-stats collection
 
-    network_stats_command = 'python scripts/client/collection.py'
+    # Filename should contain the labels
+    details = client.name.split('_')[1] # netem_client-labels-are-here_1
+    network_stats_command = f'python scripts/client/collection.py {details}'
 
     client.exec_run(
         redirect_to_out(network_stats_command),
@@ -229,6 +235,14 @@ def listen_for_container_startup(timeout=15):
 
     # Listen to docker events and handle client container setup when they start.
     # If we see a TimeoutError though, then we'll halt and return.
+    #
+    # /\/\/\/\/\
+    # TODO: To avoid race conditions where a container is able to start up
+    # before this listener is started, we should first check the existing
+    # containers.
+    #
+    # Everything should be non-blocking.
+    # \/\/\/\/\/
     try:
         for event in API.events(
                 # We're only looking at containers that were started from our

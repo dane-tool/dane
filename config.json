@@ -1,11 +1,18 @@
 {
-    "vpn_server": "vpn.ucsd.edu",
+    "behaviors": [
+        "ping",
+        "script"
+    ],
     "conditions": {
         "latency": [
-            "100ms"
+            "50ms"
         ],
         "bandwidth": [
-            "5Mbps"
+            "100mbit"
         ]
+    },
+    "vpn": {
+        "enabled": true,
+        "server": "vpn.ucsd.edu"
     }
 }

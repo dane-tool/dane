@@ -1,0 +1,64 @@
+# Built by `scripts/setup/build_compose.py` during `init` phase.
+# Please do not edit, your changes will be overwritten during the next run.
+
+networks:
+  50ms-100mbit: {}
+services:
+  client-50ms-100mbit-ping:
+    cap_add:
+    - NET_ADMIN
+    depends_on:
+    - daemon
+    - router-50ms-100mbit
+    image: netem-client
+    labels:
+      com.netem.behavior: ping
+      com.netem.type: client
+    networks:
+    - 50ms-100mbit
+    volumes:
+    - ../../scripts/:/scripts/
+    - ../../network-stats/:/network-stats/
+    - ../../data/:/data/
+  client-50ms-100mbit-script:
+    cap_add:
+    - NET_ADMIN
+    depends_on:
+    - daemon
+    - router-50ms-100mbit
+    image: netem-client
+    labels:
+      com.netem.behavior: script
+      com.netem.type: client
+    networks:
+    - 50ms-100mbit
+    volumes:
+    - ../../scripts/:/scripts/
+    - ../../network-stats/:/network-stats/
+    - ../../data/:/data/
+  daemon:
+    command: python /scripts/daemon.py
+    environment:
+      DOCKER_HOST: tcp://host.docker.internal:2375
+    image: netem-daemon
+    labels:
+      com.netem.type: daemon
+    volumes:
+    - ../../scripts/:/scripts/
+  router-50ms-100mbit:
+    cap_add:
+    - NET_ADMIN
+    depends_on:
+    - daemon
+    image: netem-router
+    labels:
+      com.netem.tc.bandwidth: 100mbit
+      com.netem.tc.latency: 50ms
+      com.netem.type: router
+    networks:
+      50ms-100mbit:
+        aliases:
+        - router
+      default:
+        priority: 1000
+version: '3.9'

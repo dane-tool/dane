@@ -68,39 +68,39 @@ services:
   #   deploy:
   #     replicas: 1
 
-  client:
-    depends_on:
-      - daemon
-      - router
-    image: netem-client
-    networks:
-      intranet:
-    cap_add:
-      - NET_ADMIN
-    volumes:
-      - ../scripts/:/scripts/
-      - ../network-stats/:/network-stats/
-      - ../data/:/data/
-    labels:
-      com.netem.type: client
-      com.netem.behavior: ping
+  # client:
+  #   depends_on:
+  #     - daemon
+  #     - router
+  #   image: netem-client
+  #   networks:
+  #     intranet:
+  #   cap_add:
+  #     - NET_ADMIN
+  #   volumes:
+  #     - ../scripts/:/scripts/
+  #     - ../network-stats/:/network-stats/
+  #     - ../data/:/data/
+  #   labels:
+  #     com.netem.type: client
+  #     com.netem.behavior: ping
 
-  router:
-    depends_on:
-      - daemon
-    image: netem-router
-    networks:
-      default:
-        priority: 1000 # Ensure we use the eth0 interface
-      intranet:
-        aliases:
-          - router
-    cap_add:
-      - NET_ADMIN
-    labels:
-      com.netem.type: router
-      com.netem.tc.latency: 100ms
-      com.netem.tc.bandwidth: 20Mbps
+  # router:
+  #   depends_on:
+  #     - daemon
+  #   image: netem-router
+  #   networks:
+  #     default:
+  #       priority: 1000 # Ensure we use the eth0 interface
+  #     intranet:
+  #       aliases:
+  #         - router
+  #   cap_add:
+  #     - NET_ADMIN
+  #   labels:
+  #     com.netem.type: router
+  #     com.netem.tc.latency: 100ms
+  #     com.netem.tc.bandwidth: 20Mbps
 
   daemon:
     image: netem-daemon
@@ -111,9 +111,8 @@ services:
       # override file.
       DOCKER_HOST: tcp://host.docker.internal:2375
     volumes:
-      - ../scripts/:/scripts/
+      - ../../scripts/:/scripts/
     labels:
       com.netem.type: daemon
 
-networks:
-  intranet:
+networks: {}
