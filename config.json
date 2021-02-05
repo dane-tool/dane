@@ -1,7 +1,6 @@
 {
     "behaviors": [
-        "ping",
-        "script"
+        "ping"
     ],
     "conditions": [
         {

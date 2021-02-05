@@ -21,22 +21,6 @@ services:
     - ../../scripts/:/scripts/
     - ../../network-stats/:/network-stats/
     - ../../data/:/data/
-  client-0ms-100Mbps-script:
-    cap_add:
-    - NET_ADMIN
-    depends_on:
-    - daemon
-    - router-0ms-100Mbps
-    image: netem-client
-    labels:
-      com.netem.behavior: script
-      com.netem.type: client
-    networks:
-    - 0ms-100Mbps
-    volumes:
-    - ../../scripts/:/scripts/
-    - ../../network-stats/:/network-stats/
-    - ../../data/:/data/
   client-50ms-10Mbps-ping:
     cap_add:
     - NET_ADMIN
@@ -46,22 +30,6 @@ services:
     image: netem-client
     labels:
       com.netem.behavior: ping
-      com.netem.type: client
-    networks:
-    - 50ms-10Mbps
-    volumes:
-    - ../../scripts/:/scripts/
-    - ../../network-stats/:/network-stats/
-    - ../../data/:/data/
-  client-50ms-10Mbps-script:
-    cap_add:
-    - NET_ADMIN
-    depends_on:
-    - daemon
-    - router-50ms-10Mbps
-    image: netem-client
-    labels:
-      com.netem.behavior: script
       com.netem.type: client
     networks:
     - 50ms-10Mbps

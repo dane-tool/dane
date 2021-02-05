@@ -12,8 +12,9 @@
 #
 # When a container starts up, the daemon will examine its labels and exec
 # commands to establish a vpn connection, run automated browsing, and collect
-# network-stats -- again some of which (namely the behavior of the automated
-# browsing) is determined by the labels.
+# network-stats. Before network stats is run, a speedtest is conducted in the
+# client container in order to produce accurate labels for the network-stats
+# file name.
 #
 # After a little bit of time, the daemon will stop listening to docker startup
 # events and start listening for an interrupt signal. When received, the daemon
@@ -21,9 +22,21 @@
 # and waiting until the interrupts are complete before shutting down the
 # containers. Then the daemon will exit itself.
 #
+# NOTE: Due to the way the self-timeout in implemented, any currently running
+# functions seem to likewise get interrupted. Therefore it is advisable to set
+# a very generous self-timeout in the function call within main.
+#
+# NOTE: Because a speedtest needs to be conducted before network-stats is run,
+# behavior scripts launch quite a bit sooner than network-stats. This could mean
+# some initial startup behavior when a particular script is launched (e.g. the
+# loading of a webpage) will not be observed.
+#
+# TODO: The setup for each router and client should be non-blocking.
+#
 
 import asyncio
 import docker
+import json
 import time
 import logging
 import signal
@@ -171,8 +184,24 @@ def setup_client(client):
 
     ## Network-stats collection
 
-    # Filename should contain the labels
-    details = client.name.split('_')[1] # netem_client-labels-are-here_1
+    # Run a speedtest in the client in order to pass the correct network labels
+    # to the network-stats filename. For now we're just interested in download
+    # speed ('bandwidth') and ping ('latency')
+    logging.info(f'Running speed test in `{client.name}`')
+    exitcode, output = client.exec_run(
+        'speedtest --json --no-upload'
+    )
+    if exitcode != 0:
+        raise Exception(f'Speedtest failed in `{client.name}`')
+    
+    speedtest = json.loads(output)
+    
+    latency = round(speedtest['ping'])
+    # Note that this outputs download speed in bit/s, so we'll convert to Mbit/s
+    bandwidth = round(speedtest['download'] * 1e-6)
+
+    details = f'{latency}ms-{bandwidth}mbit-{behavior}'
+
     network_stats_command = f'python scripts/client/collection.py {details}'
 
     client.exec_run(
@@ -314,7 +343,7 @@ this tool. Failure to do so will result in data loss.\n\
 
 if __name__ == "__main__":
 
-    routers, clients = listen_for_container_startup(timeout=8)
+    routers, clients = listen_for_container_startup(timeout=60)
 
     listen_for_interrupt(handler=lambda: handle_interrupt(routers, clients))
     

@@ -2,14 +2,27 @@
 .PHONY: start run up
 d ?= 
 start run up: init
-# Start up all of the containers defined in our docker compose yaml. If Linux is
-# being used then the linux override will be applied so that the traffic control
-# is able to work!
+# Start up all of the containers defined in our docker compose yaml. If Linux or
+# MacOS is being used then the unix override will be applied so that the traffic
+# control is able to work!
+#
+# The ifneq filter expression is simply a way to check if the client os (as seen
+# by docker) is linux or darwin
+
+# $(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,)
+ifneq (,$(filter $(shell docker version -f {{.Client.Os}}),linux darwin))
 	docker-compose \
 	-p netem -f docker/compose/docker-compose.yml \
-	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,) \
+	-f docker/compose/docker-compose.unix.yml \
 	up \
 	$(if $(d),-d,)
+else
+	docker-compose \
+	-p netem -f docker/compose/docker-compose.yml \
+	up \
+	$(if $(d),-d,)
+endif
+	
 
 .PHONY: raw
 raw:
@@ -32,9 +45,9 @@ init:
 # Build the compose file from given configuration in config.py
 	docker run \
 	--rm \
-	-v $(PWD)/scripts/setup/build_compose.py:/build_compose.py \
-	-v $(PWD)/config.json:/config.json \
-	-v $(PWD)/docker/compose:/compose \
+	-v "$(PWD)/scripts/setup/build_compose.py:/build_compose.py" \
+	-v "$(PWD)/config.json:/config.json" \
+	-v "$(PWD)/docker/compose:/compose" \
 	netem-daemon \
 	python build_compose.py
 

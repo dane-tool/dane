@@ -5,5 +5,5 @@ services:
     environment:
       DOCKER_HOST: null
     volumes:
-      # On linux we mount the docker socket directly!
+      # On unix systems we mount the docker socket directly!
       - /var/run/docker.sock:/var/run/docker.sock
