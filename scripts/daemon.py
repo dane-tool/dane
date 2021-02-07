@@ -368,13 +368,10 @@ this tool. Failure to do so will result in data loss.\n\
 
 if __name__ == "__main__":
 
-<<<<<<< HEAD
-=======
     # Timeout needs to be sufficiently large to allow for all containers to be
     # connected to VPN, sequentially.
     #
     # TODO: Make event listener for startup non-blocking.
->>>>>>> main
     routers, clients = listen_for_container_startup(timeout=60)
 
     listen_for_interrupt(handler=lambda: handle_interrupt(routers, clients))

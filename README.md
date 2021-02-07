@@ -48,9 +48,6 @@ TODO
    }
    ```
 
-<<<<<<< HEAD
-4. Run the tool, deploying all containers specified in the configuration
-=======
 4. Add secret configuration
 
    Any usernames and passwords should be added to a `.env` file in the root directory of this project. At the moment these environment variables are used solely for logging in to the UCSD VPN.
@@ -62,7 +59,6 @@ TODO
    ```
 
 5. Run the tool, deploying all containers specified in the Compose file
->>>>>>> main
    ```
    make
    ```
@@ -71,11 +67,7 @@ TODO
    
    To gracefully stop this tool, you must send an interrupt signal to the daemon. You can send this from a new terminal window or tab. Failure to send the interrupt will result in the data for that session not being collected.
    ```
-<<<<<<< HEAD
    make stop
-=======
-   make interrupt
->>>>>>> main
    ```
 
    The daemon will catch the interrupt and tear down all containers. Collected data will be present in `data/`.
