@@ -332,7 +332,7 @@ def listen_for_interrupt(handler, timeout=None):
     logging.info('Listening for daemon interrupt.')
     logging.warning('\n\
 ========\n\
-Please run `make interrupt` or `docker kill -s SIGINT netem_daemon_1` to stop\n\
+Please run `make stop` or `docker kill -s SIGINT netem_daemon_1` to stop\n\
 this tool. Failure to do so will result in data loss.\n\
 ========')
 

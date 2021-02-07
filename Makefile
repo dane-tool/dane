@@ -1,34 +1,24 @@
 
 .PHONY: start run up
 d ?= 
-start run up: init
+start run up: init raw
 # Start up all of the containers defined in our docker compose yaml. If Linux or
 # MacOS is being used then the unix override will be applied so that the traffic
 # control is able to work!
 #
-# The ifneq filter expression is simply a way to check if the client os (as seen
-# by docker) is linux or darwin
-
-# $(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,)
-ifneq (,$(filter $(shell docker version -f {{.Client.Os}}),linux darwin))
-	docker-compose \
-	-p netem -f built/docker-compose.yml \
-	-f docker/compose/docker-compose.unix.yml \
-	up \
-	$(if $(d),-d,)
-else
-	docker-compose \
-	-p netem -f built/docker-compose.yml \
-	up \
-	$(if $(d),-d,)
-endif	
+# The if filter expression is simply a way to check if the client os (as seen by
+# docker) is linux or darwin
 
 .PHONY: raw
 raw:
-# Start up all containers *without* creating a new compose file first.
+# Start up all containers using an already created compose file.
 	docker-compose \
 	-p netem -f built/docker-compose.yml \
-	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,) \
+	$(if \
+		$(filter $(shell docker version -f {{.Client.Os}}),linux darwin),\
+		-f docker/compose/docker-compose.unix.yml,\
+		\
+	) \
 	up \
 	$(if $(d),-d,)
 

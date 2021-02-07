@@ -82,7 +82,9 @@ def main(tool_dir, config_file=None):
 
             compose['services'][client_name] = client
 
-    with open(Path(tool_dir, 'built/docker-compose.yml'), 'w') as outfile:
+    built_file = Path(tool_dir, 'built/docker-compose.yml')
+    built_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(built_file, 'w') as outfile:
         outfile.writelines([
             '# Built by `build_compose.py` during `init` phase.\n',
             '# Please do not edit, your changes will be overwritten during the next run.\n',
