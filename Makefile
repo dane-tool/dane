@@ -12,44 +12,51 @@ start run up: init
 # $(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,)
 ifneq (,$(filter $(shell docker version -f {{.Client.Os}}),linux darwin))
 	docker-compose \
-	-p netem -f docker/compose/docker-compose.yml \
+	-p netem -f built/docker-compose.yml \
 	-f docker/compose/docker-compose.unix.yml \
 	up \
 	$(if $(d),-d,)
 else
 	docker-compose \
-	-p netem -f docker/compose/docker-compose.yml \
+	-p netem -f built/docker-compose.yml \
 	up \
 	$(if $(d),-d,)
-endif
-	
+endif	
 
 .PHONY: raw
 raw:
 # Start up all containers *without* creating a new compose file first.
 	docker-compose \
-	-p netem -f docker/compose/docker-compose.yml \
+	-p netem -f built/docker-compose.yml \
 	$(if $(findstring linux,$(shell docker version -f {{.Client.Os}})),-f docker/compose/docker-compose.linux.yml,) \
 	up \
 	$(if $(d),-d,)
 
-.PHONY: stop
-stop down:
+.PHONY: stop interrupt
+name ?= netem_daemon_1
+stop interrupt:
+# Send a SIGINT signal to a container, defaulting to the daemon.
+	docker kill --signal SIGINT $(name)
+
+.PHONY: down
+down:
 	docker-compose \
-	-p netem -f docker/compose/docker-compose.yml \
+	-p netem -f built/docker-compose.yml \
 	down \
 	--remove-orphans
 
 .PHONY: init
+tool_dir ?= 
+config_file ?= 
 init:
 # Build the compose file from given configuration in config.py
 	docker run \
 	--rm \
-	-v "$(PWD)/scripts/setup/build_compose.py:/build_compose.py" \
-	-v "$(PWD)/config.json:/config.json" \
-	-v "$(PWD)/docker/compose:/compose" \
-	netem-daemon \
-	python build_compose.py
+	-v "$(PWD):/home" \
+	netem-init \
+	python setup/build_compose.py \
+	$(if $(tool_dir),--src $(tool_dir),) \
+	$(if $(config_file),-config $(config_file),)
 
 .PHONY: build
 tag ?= latest
@@ -76,6 +83,17 @@ ifeq ($(only),all)
 	-f docker/router/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
 	-t netem-router:$(tag) .
+
+	docker build \
+	-f Dockerfile \
+	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
+	-t netem-init:$(tag) .
+
+else ifeq ($(only),init)
+	docker build \
+	-f Dockerfile \
+	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
+	-t netem-init:$(tag) .
 else
 	docker build \
 	-f docker/$(only)/Dockerfile \
@@ -90,6 +108,7 @@ clean: stop
 	docker rmi netem-client
 	docker rmi netem-daemon
 	docker rmi netem-router
+	docker rmi netem-init
 
 .PHONY: exec
 service ?= daemon
@@ -97,7 +116,7 @@ command ?= sh
 exec:
 # Exec into a shell for a given service.
 	docker-compose \
-	-p netem -f docker/compose/docker-compose.yml \
+	-p netem -f built/docker-compose.yml \
 	exec $(service) $(command)
 
 .PHONY: sh
@@ -107,12 +126,6 @@ sh:
 	-v $(CURDIR):/network-data-generation \
 	-e DOCKER_HOST=tcp://host.docker.internal:2375 \
 	netem-daemon sh
-
-.PHONY: interrupt
-name ?= netem_daemon_1
-interrupt:
-# Send a SIGINT signal to a container, defaulting to the daemon.
-	docker kill --signal SIGINT $(name)
 
 .PHONY: delay
 delay:

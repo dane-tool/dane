@@ -6,10 +6,6 @@ FROM python:3.8-alpine
 RUN apk add docker
 RUN pip install docker
 
-# We also utilize this container during setup (building the compose file), so it
-# helps to have the PyYAML package installed
-RUN pip install pyyaml
-
 CMD ["sleep", "infinity"]
 
 # Metadata
