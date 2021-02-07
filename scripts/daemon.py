@@ -117,9 +117,10 @@ def teardown_router(router):
 def setup_client(client):
     """
     Callback to docker startup event listener. Runs, in order:
-    1. Network emulation
-    2. Behavior launching
-    3. Network-stats collection
+    1. Connect to router
+    2. Connect to vpn
+    3. Behavior launching
+    4. Network-stats collection
     """
 
     logging.info(f"[+] Setting up client `{client.name}`")
@@ -136,6 +137,31 @@ def setup_client(client):
     )
 
     logging.info(f'Client `{client.name}` connected to internal router.')
+
+    ## Connect to vpn
+
+    # The username, group, and password for our vpn are all loaded into the
+    # client's environment variables. See `/.env`
+    # We can use these variables to log into the vpn without the need for
+    # interactivity!
+    #
+    # We don't want to continue with behavior launching and data collection
+    # until we've successfully connected to the vpn, so we'll run openconnect
+    # in a --background mode and we can wait for the foreground process to exit.
+    exitcode, output = client.exec_run([
+        'sh', '-c',
+        'echo "$VPN_PASSWORD" \
+        | openconnect --script ./vpnc-script --disable-ipv6 \
+        -u "$VPN_USERNAME" --authgroup="$VPN_USERGROUP" --passwd-on-stdin \
+        --non-inter --background \
+        vpn.ucsd.edu \
+        && exit 0'
+    ])
+
+    if exitcode != 0 :
+        raise Exception(f'{client.name} did not connect to the VPN!')
+
+    logging.info(f'Client `{client.name}` connected to VPN.')
 
     ## Behavior launching
 
@@ -252,9 +278,8 @@ def listen_for_container_startup(timeout=15):
     except TimeoutError:
         logging.info('Timeout seen.')
 
-    finally:
-        logging.info('No longer listening for docker events.')
-        return routers, clients
+    logging.info('No longer listening for docker events.')
+    return routers, clients
 
 def handle_interrupt(routers, clients):
 
@@ -298,7 +323,11 @@ this tool. Failure to do so will result in data loss.\n\
 
 if __name__ == "__main__":
 
-    routers, clients = listen_for_container_startup(timeout=8)
+    # Timeout needs to be sufficiently large to allow for all containers to be
+    # connected to VPN, sequentially.
+    #
+    # TODO: Make event listener for startup non-blocking.
+    routers, clients = listen_for_container_startup(timeout=60)
 
     listen_for_interrupt(handler=lambda: handle_interrupt(routers, clients))
     
