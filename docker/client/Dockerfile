@@ -43,9 +43,10 @@ RUN curl -s https://api.github.com/repos/mozilla/geckodriver/releases/latest \
 RUN pip install \
     selenium
 
-#* VPN-RELATED SOFTWARE
+# Dependencies for connecting to a VPN
 RUN apt-get install -y openconnect && \
-    curl -O https://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script
+    curl -O https://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script && \
+    chmod +x ./vpnc-script
 
 # ADD scripts/init/client.sh /
 # RUN chmod +x /client.sh
