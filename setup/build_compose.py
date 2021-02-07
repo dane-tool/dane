@@ -30,14 +30,14 @@ def main(tool_dir, config_file=None):
         with open(config_file, 'r') as infile:
             config = json.load(infile)
 
-    with open(Path(tool_dir, 'docker/compose/template.yml'), 'r') as infile:
-        compose_template = yaml.full_load(infile)
+    with open(Path(tool_dir, 'docker/compose/base.yml'), 'r') as infile:
+        compose_base = yaml.full_load(infile)
 
-    with open(Path(tool_dir, 'docker/compose/parts.yml'), 'r') as infile:
-        parts = yaml.full_load(infile)
+    with open(Path(tool_dir, 'docker/compose/components.yml'), 'r') as infile:
+        components = yaml.full_load(infile)
 
     # Our compose file to write
-    compose = copy.deepcopy(compose_template)
+    compose = copy.deepcopy(compose_base)
 
     # Get all desired network conditions
     conditions = config['conditions']
@@ -56,12 +56,12 @@ def main(tool_dir, config_file=None):
         bandwidth = condition['bandwidth']
 
         # Create the network and router referencing it.
-        network = copy.deepcopy(parts['network'])
+        network = copy.deepcopy(components['network'])
         network_name = f'{latency}-{bandwidth}'
         
         compose['networks'][network_name] = network
         
-        router = copy.deepcopy(parts['router'])
+        router = copy.deepcopy(components['router'])
         router_name = f'router-{network_name}'
         router['networks'][network_name] = router['networks'].pop('NETWORK_VALUE')
         router['labels']['com.netem.tc.latency'] = latency
@@ -73,7 +73,7 @@ def main(tool_dir, config_file=None):
         # the network and router we just added.
         for behavior in behaviors:
 
-            client = copy.deepcopy(parts['client'])
+            client = copy.deepcopy(components['client'])
             # This doesn't handle duplicates/replicas.
             client_name = f'client-{network_name}-{behavior}'
             client['depends_on'].append(router_name)

@@ -1,3 +1,7 @@
+# NOTE: The Compose file takes relative paths. It will be located in the
+# `/built` directory, so all mount paths should be prefixed by `../` to access
+# the root project directory.
+
 client:
   depends_on:
     - daemon
@@ -8,9 +12,9 @@ client:
   cap_add:
     - NET_ADMIN
   volumes:
-    - ../../scripts/:/scripts/
-    - ../../network-stats/:/network-stats/
-    - ../../data/:/data/
+    - ../scripts/:/scripts/
+    - ../network-stats/:/network-stats/
+    - ../data/:/data/
   labels:
     com.netem.type: client
     com.netem.behavior: BEHAVIOR_VALUE

@@ -1,0 +1,21 @@
+# NOTE: The Compose file takes relative paths. It will be located in the
+# `/built` directory, so all mount paths should be prefixed by `../` to access
+# the root project directory.
+
+version: "3.9"
+services:
+
+  daemon:
+    image: netem-daemon
+    command: python /scripts/daemon.py
+    environment:
+      # This host address should work for Windows and Mac. For Linux a different
+      # approach is needed in order to allow Docker within Docker -- see the
+      # override file.
+      DOCKER_HOST: tcp://host.docker.internal:2375
+    volumes:
+      - ../scripts/:/scripts/
+    labels:
+      com.netem.type: daemon
+
+networks: {}
