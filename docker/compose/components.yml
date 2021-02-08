@@ -5,18 +5,13 @@
 client:
   depends_on:
     - daemon
-    # - ROUTER_VALUE
   image: netem-client
   networks: []
-    # - NETWORK_VALUE
   cap_add:
     - NET_ADMIN
   volumes:
     - ../scripts/:/scripts/
-    - ../network-stats/:/network-stats/
-    - ../data/:/data/
-  env_file:
-    - ../.env
+  env_file: []
   labels:
     com.netem.type: client
     com.netem.behavior: BEHAVIOR_VALUE

@@ -12,6 +12,14 @@
 # In the event a custom configuration file is desired, the command line option
 # `--config`, `-c` can be used to specify the path of the config file.
 #
+# The tool utilizes an environment file (.env) located in its root directory. If
+# a different location is desired, the command line option `--env`, `-e` can be
+# used to specify the path of the environment file.
+#
+# Collected data defaults to a `data/` directory in the root of the tool. To
+# output data to a different directory, the command line option `--output`, `-o`
+# can be used to specify the path to the data directory.
+#
 
 import argparse
 import copy
@@ -21,14 +29,10 @@ import yaml
 
 from pathlib import Path
 
-def main(tool_dir, config_file=None):
-
-    if config_file is None:
-        with open(Path(tool_dir, 'config.json'), 'r') as infile:
-            config = json.load(infile)
-    else:
-        with open(config_file, 'r') as infile:
-            config = json.load(infile)
+def main(tool_dir, config_file, env_file, data_dir):
+    
+    with open(config_file, 'r') as infile:
+        config = json.load(infile)
 
     with open(Path(tool_dir, 'docker/compose/base.yml'), 'r') as infile:
         compose_base = yaml.full_load(infile)
@@ -80,6 +84,9 @@ def main(tool_dir, config_file=None):
             client['networks'].append(network_name)
             client['labels']['com.netem.behavior'] = behavior
 
+            client['env_file'].append(env_file)
+            client['volumes'].append(f'{data_dir}:/data/')
+
             compose['services'][client_name] = client
 
     built_file = Path(tool_dir, 'built/docker-compose.yml')
@@ -96,17 +103,48 @@ def main(tool_dir, config_file=None):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
         '-s', '--src',
+        default='.',
         help='Path to the root directory of the tool.'
     )
     parser.add_argument(
         '-c', '--config',
+        default=None,
         help='File path of the desired configuration file.'
     )
+    parser.add_argument(
+        '-e', '--env',
+        default=None,
+        help='File path of the desired environment file.'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        default=None,
+        help='Path to the data output directory for the tool.'
+    )
+
     args = parser.parse_args()
 
-    tool_dir = args.src or '.'
+    tool_dir = args.src
     config_file = args.config
+    env_file = args.env
+    data_dir = args.output
 
-    main(tool_dir, config_file)
+    if config_file is None:
+        config_file = str(Path(tool_dir, 'config.json'))
+
+    # These paths are used in the Compose file and are therefore relative to the
+    # `built` directory in the tool. If not relative, must be absolute.
+    if env_file is None:
+        env_file = '../.env'
+    else:
+        env_file = str(Path(env_file).absolute())
+    
+    if data_dir is None:
+        data_dir = '../data/'
+    else:
+        data_dir = str(Path(data_dir).absolute())
+
+    main(tool_dir, config_file, env_file, data_dir)
