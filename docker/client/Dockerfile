@@ -21,8 +21,6 @@ RUN pip install \
     pcapy \
     speedtest-cli
 
-RUN git clone https://github.com/viasat/network-stats
-
 # Install apt dependencies for web browsing
 RUN apt-get update && \
     apt-get install -y \
