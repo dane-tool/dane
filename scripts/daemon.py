@@ -176,7 +176,7 @@ def setup_client(client):
         pass # Continue to sleep
     elif behavior == 'streaming':
         behavior_command = 'python scripts/selenium-browsing-automation/scripts/streaming/youtube_selenium.py'
-    elif behaviour == 'browsing':
+    elif behavior == 'browsing':
         behavior_command = 'python scripts/selenium-browsing-automation/scripts/browsing/endless-scroll.py' 
     elif behavior is None:
         logging.warning(f'Target behavior for `{client.name}` not found; will sleep.')

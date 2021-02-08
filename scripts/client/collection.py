@@ -19,4 +19,4 @@ filename = f"{timestamp}_{container_id}.csv"
 datadir = "/data/"
 
 # For now, just call network-stats and send the output to the data mount.
-os.system(f'network-stats/network_stats.py -i eth0 -e {Path(datadir, filename)}')
+os.system(f'scripts/network-stats/network_stats.py -i eth0 -e {Path(datadir, filename)}')
