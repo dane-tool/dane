@@ -54,10 +54,6 @@ only ?= all
 build:
 # Build all (or only some) images.
 ifeq ($(only),all)
-	docker build \
-	-f docker/controller/Dockerfile \
-	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-controller:$(tag) .
 
 	docker build \
 	-f docker/client/Dockerfile \
@@ -94,7 +90,6 @@ endif
 .PHONY: clean
 clean: stop
 # Make sure everything is stopped and remove all built images
-	docker rmi netem-controller
 	docker rmi netem-client
 	docker rmi netem-daemon
 	docker rmi netem-router
@@ -108,28 +103,3 @@ exec:
 	docker-compose \
 	-p netem -f built/docker-compose.yml \
 	exec $(service) $(command)
-
-.PHONY: sh
-sh:
-# Run a daemon shell mounted to the project directory
-	docker run -it --rm \
-	-v $(CURDIR):/network-data-generation \
-	-e DOCKER_HOST=tcp://host.docker.internal:2375 \
-	netem-daemon sh
-
-.PHONY: delay
-delay:
-#! TEMPORARY -- just for demonstration purposes
-	docker exec -it netem_daemon_1 \
-		docker run -it -d --rm --cap-add NET_ADMIN --net container:netem_client_1 \
-		netem-controller \
-		tc qdisc add dev eth0 root netem delay 300ms
-
-.PHONY: daemon-delay
-daemon-delay:
-#! TEMPORARY -- acts like the daemon spawning a traffic controller for client_1
-	docker run -i --rm \
-	-e DOCKER_HOST=tcp://host.docker.internal:2375 \
-	-v $(CURDIR)/scripts:/scripts \
-	netem-daemon \
-	sh < scripts/daemon.sh

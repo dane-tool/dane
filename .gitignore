@@ -2,6 +2,7 @@
 
 /data/
 /built/
+/config.json
 
 ### Python:
 

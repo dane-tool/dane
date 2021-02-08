@@ -16,9 +16,6 @@ RUN apk add --update iproute2 iptables
 RUN pip install \
     tcconfig
 
-# ADD scripts/init/router.sh /
-# RUN chmod +x /router.sh
-# ENTRYPOINT ["/router.sh"]
 CMD ["sleep", "infinity"]
 
 # Metadata

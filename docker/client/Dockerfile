@@ -48,9 +48,6 @@ RUN apt-get install -y openconnect && \
     curl -O https://git.infradead.org/users/dwmw2/vpnc-scripts.git/blob_plain/HEAD:/vpnc-script && \
     chmod +x ./vpnc-script
 
-# ADD scripts/init/client.sh /
-# RUN chmod +x /client.sh
-# ENTRYPOINT ["/client.sh"]
 CMD ["sleep", "infinity"]
 
 # Metadata
