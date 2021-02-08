@@ -9,8 +9,9 @@ Generate network communication data for target tasks in diverse network conditio
 - [Requirements](#requirements)
 - [Example](#example)
 - [Software / References](#software--references)
+- [Why doesn't this work for Windows and Mac?](#why-doesnt-this-work-for-windows-and-mac)
 
-**Note:** This is currently being developed primarily on **Windows 10** and **Linux**. If you are on Windows 10 you *must* use the **Hyper-V backend** for Docker. The WSL2 backend doesn't seem to work. This runs on Linux by using a docker-compose override which is added automatically. Mac is a mystery at the moment since my old Mac is incapable of running Docker (!), but theoretically Mac should work the same as Windows.
+**Note:** Due to various Docker networking constraints, this tool is **currently only for Linux**. See [explanation](networking-issues).
 
 ## What does it do
 
@@ -31,7 +32,21 @@ TODO
 
 3. Specify target conditions and behaviors
 
-   TODO. Modify the `docker/docker-compose.yml` file.
+   ```json
+   # In `config.json`:
+   {
+      "behavior": [
+         "browsing",
+         "streaming"
+      ],
+      "conditions": [
+         {
+            "latency": "50ms",
+            "bandwidth": "10Mbps"
+         }
+      ]
+   }
+   ```
 
 4. Add secret configuration
 
@@ -45,29 +60,29 @@ TODO
 
 5. Run the tool, deploying all containers specified in the Compose file
    ```
-   make run
+   make
    ```
 
 6. Interrupt the tool
    
    To gracefully stop this tool, you must send an interrupt signal to the daemon. You can send this from a new terminal window or tab. Failure to send the interrupt will result in the data for that session not being collected.
    ```
-   make interrupt
+   make stop
    ```
 
    The daemon will catch the interrupt and tear down all containers. Collected data will be present in `data/`.
 
 7. Finish with the tool completely
    
-   Once you are completely done with the tool, you can ensure all aspects of the tool are stopped.
+   Once you are completely done with the tool, you can teardown all components
    ```
-   make stop
+   make down
    ```
    And you can remove the built Docker images from your machine with
    ```
    make clean
    ```
-   (you will need to rebuild the images if you choose to run this)
+   (**Note:** you will need to rebuild the images if you choose to run the clean target)
 
 ## Approach
 
@@ -83,11 +98,10 @@ TODO
 
 ## Requirements
 
-This project runs on Linux, Mac, and Windows Pro or Education (Hyper-V must be available).
-
-You will need [**Docker 19.03+**](https://docs.docker.com/get-docker/) and [**Docker Compose 1.27+**](https://docs.docker.com/compose/install/) (on Windows and Mac this is included with your installation of Docker Desktop) in order to run.
-
-Finally, [**GNU Make**](https://www.gnu.org/software/make/) is used to make running specific tasks easier (by just running `make <target>` rather than running a `docker` or `docker-compose` command directly). If you're on Windows I recommend using **GitBash** as your main terminal, and referencing [this link](https://stackoverflow.com/questions/32127524/how-to-install-and-use-make-in-windows) for installing make. If you're on Mac you can use homebrew to `brew install make`.
+This tool runs on Linux. You will need:
+- [**Docker 19.03+**](https://docs.docker.com/get-docker/)
+- [**Docker Compose 1.27+**](https://docs.docker.com/compose/install/)
+- [**GNU Make**](https://www.gnu.org/software/make/)
 
 ## Example
 
@@ -104,3 +118,8 @@ make run # Run the containerized network emulation
   [**TC NetEm documentation**][netem]. Used to emulate network conditions.
 - [compose]: https://github.com/compose-spec/compose-spec/blob/master/spec.md
   [**Docker Compose YAML specification**][compose]. Used to handle options when launching multiple docker containers (clients and daemon).
+
+[networking-issues]: []
+## Why doesn't this work for Windows and Mac?
+
+**WIP**

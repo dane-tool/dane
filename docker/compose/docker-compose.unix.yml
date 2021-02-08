@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+
+  daemon:
+    environment:
+      DOCKER_HOST: null
+    volumes:
+      # On unix systems we mount the docker socket directly!
+      - /var/run/docker.sock:/var/run/docker.sock

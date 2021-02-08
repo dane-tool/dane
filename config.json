@@ -1,0 +1,19 @@
+{
+    "behaviors": [
+        "ping"
+    ],
+    "conditions": [
+        {
+            "latency": "50ms",
+            "bandwidth": "10Mbps"
+        },
+        {
+            "latency": "0ms",
+            "bandwidth": "100Mbps"
+        }
+    ],
+    "vpn": {
+        "enabled": true,
+        "server": "vpn.ucsd.edu"
+    }
+}

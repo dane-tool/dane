@@ -14,10 +14,12 @@ RUN apt-get update && \
     apt-get install -y \
     libpcap-dev
 
-# Install python dependencies for running network-stats
+# Install python dependencies for running network-stats, and include speedtest
+# capability for labeling the file
 RUN pip install \
     impacket \
-    pcapy
+    pcapy \
+    speedtest-cli
 
 RUN git clone https://github.com/viasat/network-stats
 

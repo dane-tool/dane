@@ -12,8 +12,9 @@
 #
 # When a container starts up, the daemon will examine its labels and exec
 # commands to establish a vpn connection, run automated browsing, and collect
-# network-stats -- again some of which (namely the behavior of the automated
-# browsing) is determined by the labels.
+# network-stats. Before network stats is run, a speedtest is conducted in the
+# client container in order to produce accurate labels for the network-stats
+# file name.
 #
 # After a little bit of time, the daemon will stop listening to docker startup
 # events and start listening for an interrupt signal. When received, the daemon
@@ -21,9 +22,21 @@
 # and waiting until the interrupts are complete before shutting down the
 # containers. Then the daemon will exit itself.
 #
+# NOTE: Due to the way the self-timeout in implemented, any currently running
+# functions seem to likewise get interrupted. Therefore it is advisable to set
+# a very generous self-timeout in the function call within main.
+#
+# NOTE: Because a speedtest needs to be conducted before network-stats is run,
+# behavior scripts launch quite a bit sooner than network-stats. This could mean
+# some initial startup behavior when a particular script is launched (e.g. the
+# loading of a webpage) will not be observed.
+#
+# TODO: The setup for each router and client should be non-blocking.
+#
 
 import asyncio
 import docker
+import json
 import time
 import logging
 import signal
@@ -75,31 +88,37 @@ def setup_router(router):
 
     ## Network emulation
 
-    # Start by getting all traffic control labels. These are rules that we will
-    # directly use to emulate conditions.
-    #
-    # We end up with a mapping of tc rules to their arguments.
-    # e.g. {"delay": "100ms 20ms distribution normal"}
-    #
-    # /\/\/\/\/\/\/\/\
-    #! TODO: This does *not* work for bandwidth -- which is very important.
-    # Critical that we fix this and add bandwidth support.
-    #
-    # Basically: THIS NEEDS TO BE REWORKED.
-    #
-    # See notes on "Netem bandwidth limiting" for the proper commands.
-    # \/\/\/\/\/\/\/\/
+    # # Start by getting all traffic control labels. These are rules that we will
+    # # directly use to emulate conditions.
+    # #
+    # # We end up with a mapping of tc rules to their arguments.
+    # # e.g. {"delay": "100ms 20ms distribution normal"}
+    # #
+    # # /\/\/\/\/\/\/\/\
+    # #! TODO: This does *not* work for bandwidth -- which is very important.
+    # # Critical that we fix this and add bandwidth support.
+    # #
+    # # Basically: THIS NEEDS TO BE REWORKED.
+    # #
+    # # See notes on "Netem bandwidth limiting" for the proper commands.
+    # # \/\/\/\/\/\/\/\/
     
-    rule_names = [label for label in router.labels if label.startswith(LABEL_PREFIX+'tc')]
-    rules = {
-        name.split('.')[-1]: router.labels.get(name)
-        for name in rule_names
-    }
+    # rule_names = [label for label in router.labels if label.startswith(LABEL_PREFIX+'tc')]
+    # rules = {
+    #     name.split('.')[-1]: router.labels.get(name)
+    #     for name in rule_names
+    # }
 
-    # tc will take in all rules and arguments as simply space separated.
-    rule_string = ' '.join([f"{k} {v}" for k,v in rules.items()])
-    tc_command = f"tc qdisc add dev eth0 root netem {rule_string}"
+    # # tc will take in all rules and arguments as simply space separated.
+    # rule_string = ' '.join([f"{k} {v}" for k,v in rules.items()])
+    # tc_command = f"tc qdisc add dev eth0 root netem {rule_string}"
 
+    latency = router.labels.get(LABEL_PREFIX+'tc.latency')
+    bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
+
+    # TODO: You know what? We could totally have the router run a pingtest to
+    # get the current latency before injecting the additional latency...
+    tc_command = f'tcset eth0 --delay {latency} --rate {bandwidth} --direction incoming'
     router.exec_run(
         tc_command
     )
@@ -191,7 +210,25 @@ def setup_client(client):
 
     ## Network-stats collection
 
-    network_stats_command = 'python scripts/client/collection.py'
+    # Run a speedtest in the client in order to pass the correct network labels
+    # to the network-stats filename. For now we're just interested in download
+    # speed ('bandwidth') and ping ('latency')
+    logging.info(f'Running speed test in `{client.name}`')
+    exitcode, output = client.exec_run(
+        'speedtest --json --no-upload'
+    )
+    if exitcode != 0:
+        raise Exception(f'Speedtest failed in `{client.name}`')
+    
+    speedtest = json.loads(output)
+    
+    latency = round(speedtest['ping'])
+    # Note that this outputs download speed in bit/s, so we'll convert to Mbit/s
+    bandwidth = round(speedtest['download'] * 1e-6)
+
+    details = f'{latency}ms-{bandwidth}mbit-{behavior}'
+
+    network_stats_command = f'python scripts/client/collection.py {details}'
 
     client.exec_run(
         redirect_to_out(network_stats_command),
@@ -247,6 +284,14 @@ def listen_for_container_startup(timeout=15):
 
     # Listen to docker events and handle client container setup when they start.
     # If we see a TimeoutError though, then we'll halt and return.
+    #
+    # /\/\/\/\/\
+    # TODO: To avoid race conditions where a container is able to start up
+    # before this listener is started, we should first check the existing
+    # containers.
+    #
+    # Everything should be non-blocking.
+    # \/\/\/\/\/
     try:
         for event in API.events(
                 # We're only looking at containers that were started from our
@@ -312,7 +357,7 @@ def listen_for_interrupt(handler, timeout=None):
     logging.info('Listening for daemon interrupt.')
     logging.warning('\n\
 ========\n\
-Please run `make interrupt` or `docker kill -s SIGINT netem_daemon_1` to stop\n\
+Please run `make stop` or `docker kill -s SIGINT netem_daemon_1` to stop\n\
 this tool. Failure to do so will result in data loss.\n\
 ========')
 

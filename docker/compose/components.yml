@@ -1,0 +1,41 @@
+# NOTE: The Compose file takes relative paths. It will be located in the
+# `/built` directory, so all mount paths should be prefixed by `../` to access
+# the root project directory.
+
+client:
+  depends_on:
+    - daemon
+    # - ROUTER_VALUE
+  image: netem-client
+  networks: []
+    # - NETWORK_VALUE
+  cap_add:
+    - NET_ADMIN
+  volumes:
+    - ../scripts/:/scripts/
+    - ../network-stats/:/network-stats/
+    - ../data/:/data/
+  env_file:
+    - ../.env
+  labels:
+    com.netem.type: client
+    com.netem.behavior: BEHAVIOR_VALUE
+
+router:
+  depends_on:
+    - daemon
+  image: netem-router
+  networks:
+    default:
+      priority: 1000 # Ensure we use the eth0 interface
+    NETWORK_VALUE:
+      aliases:
+        - router
+  cap_add:
+    - NET_ADMIN
+  labels:
+    com.netem.type: router
+    com.netem.tc.latency: LATENCY_VALUE
+    com.netem.tc.bandwidth: BANDWIDTH_VALUE
+
+network: {}
