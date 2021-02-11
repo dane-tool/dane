@@ -54,7 +54,7 @@ def main(tool_dir, config_file, env_file, data_dir):
     #
     # Within each set of network conditions, add `client` services for each target
     # behavior, connected to the proper network.
-    for condition in conditions:
+    for condition in conditions: # -- Networks, routers
 
         latency = condition['latency']
         bandwidth = condition['bandwidth']
@@ -75,7 +75,7 @@ def main(tool_dir, config_file, env_file, data_dir):
 
         # Create the clients referencing each behavior. These should also reference
         # the network and router we just added.
-        for behavior in behaviors:
+        for behavior in behaviors: # -- Clients
 
             client = copy.deepcopy(components['client'])
             # This doesn't handle duplicates/replicas.
@@ -86,6 +86,11 @@ def main(tool_dir, config_file, env_file, data_dir):
 
             client['env_file'].append(env_file)
             client['volumes'].append(f'{data_dir}:/data/')
+
+            # Configure whether or not the vpn will be set up, the host address,
+            # etc by passing labels to each client.
+            client['labels']['com.netem.vpn.enabled'] = config['vpn']['enabled']
+            client['labels']['com.netem.vpn.server'] = config['vpn']['server']
 
             compose['services'][client_name] = client
 
