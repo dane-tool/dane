@@ -169,9 +169,11 @@ def setup_client(client):
     elif behavior == 'none':
         pass # Continue to sleep
     elif behavior == 'streaming':
-        behavior_command = 'python scripts/selenium-browsing-automation/scripts/streaming/youtube_selenium.py'
+        # This syntax needs to be used in order to run a single file as a
+        # *module* so it can still utilize imports from its parent package.
+        behavior_command = 'python -m scripts.selenium-browsing-automation.scripts.streaming.youtube_selenium.py'
     elif behavior == 'browsing':
-        behavior_command = 'python scripts/selenium-browsing-automation/scripts/browsing/endless-scroll.py' 
+        behavior_command = 'python scripts.selenium-browsing-automation.scripts.browsing.endless-scroll.py' 
     elif behavior is None:
         logging.warning(f'Target behavior for `{client.name}` not found; will sleep.')
         pass
