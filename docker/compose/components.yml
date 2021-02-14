@@ -15,6 +15,7 @@ client:
   labels:
     com.netem.type: client
     com.netem.behavior: BEHAVIOR_VALUE
+  shm_size: 3gb
 
 router:
   depends_on:
