@@ -54,7 +54,7 @@ def main(tool_dir, config_file, env_file, data_dir):
     #
     # Within each set of network conditions, add `client` services for each target
     # behavior, connected to the proper network.
-    for condition in conditions:
+    for condition in conditions: # -- Networks, routers
 
         latency = condition['latency']
         bandwidth = condition['bandwidth']
@@ -75,7 +75,7 @@ def main(tool_dir, config_file, env_file, data_dir):
 
         # Create the clients referencing each behavior. These should also reference
         # the network and router we just added.
-        for behavior in behaviors:
+        for behavior in behaviors: # -- Clients
 
             client = copy.deepcopy(components['client'])
             # This doesn't handle duplicates/replicas.
@@ -87,13 +87,21 @@ def main(tool_dir, config_file, env_file, data_dir):
             client['env_file'].append(env_file)
             client['volumes'].append(f'{data_dir}:/data/')
 
+            # Configure whether or not the vpn will be set up, the host address,
+            # etc by passing labels to each client.
+            client['labels']['com.netem.vpn.enabled'] = config['vpn']['enabled']
+            client['labels']['com.netem.vpn.server'] = config['vpn']['server']
+
+            # Specify shared memory
+            client['shm_size'] = config['client']['shared_memory_size']
+
             compose['services'][client_name] = client
 
     built_file = Path(tool_dir, 'built/docker-compose.yml')
     built_file.parent.mkdir(parents=True, exist_ok=True)
     with open(built_file, 'w') as outfile:
         outfile.writelines([
-            '# Built by `build_compose.py` during `init` phase.\n',
+            '# Built by `build_compose.py` during `compose` phase of tool use.\n',
             '# Please do not edit, your changes will be overwritten during the next run.\n',
             '\n'
         ])

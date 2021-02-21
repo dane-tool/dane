@@ -142,20 +142,28 @@ def setup_client(client):
     # We don't want to continue with behavior launching and data collection
     # until we've successfully connected to the vpn, so we'll run openconnect
     # in a --background mode and we can wait for the foreground process to exit.
-    exitcode, output = client.exec_run([
-        'sh', '-c',
-        'echo "$VPN_PASSWORD" \
-        | openconnect --script ./vpnc-script --disable-ipv6 \
-        -u "$VPN_USERNAME" --authgroup="$VPN_USERGROUP" --passwd-on-stdin \
-        --non-inter --background \
-        vpn.ucsd.edu \
-        && exit 0'
-    ])
+    #
+    # If the label for the client says it's not enabled, don't run this!
+    is_vpn_enabled = client.labels.get(LABEL_PREFIX+'vpn.enabled')
+    # Note that labels are always treated as strings!
+    if is_vpn_enabled != 'False':
 
-    if exitcode != 0 :
-        raise Exception(f'{client.name} did not connect to the VPN!')
+        server = client.labels.get(LABEL_PREFIX+'vpn.server') or 'vpn.ucsd.edu'
 
-    logging.info(f'Client `{client.name}` connected to VPN.')
+        exitcode, output = client.exec_run([
+            'sh', '-c',
+            f'echo "$VPN_PASSWORD" \
+            | openconnect --script ./vpnc-script --disable-ipv6 \
+            -u "$VPN_USERNAME" --authgroup="$VPN_USERGROUP" --passwd-on-stdin \
+            --non-inter --background \
+            {server} \
+            && exit 0'
+        ])
+
+        if exitcode != 0 :
+            raise Exception(f'{client.name} did not connect to the VPN!')
+
+        logging.info(f'Client `{client.name}` connected to VPN.')
 
     ## Behavior launching
 
@@ -169,9 +177,11 @@ def setup_client(client):
     elif behavior == 'none':
         pass # Continue to sleep
     elif behavior == 'streaming':
-        behavior_command = 'python scripts/selenium-browsing-automation/scripts/streaming/youtube_selenium.py'
+        # This syntax needs to be used in order to run a single file as a
+        # *module* so it can still utilize imports from its parent package.
+        behavior_command = 'python -m scripts.selenium-browsing-automation.scripts.streaming.youtube_selenium.py'
     elif behavior == 'browsing':
-        behavior_command = 'python scripts/selenium-browsing-automation/scripts/browsing/endless-scroll.py' 
+        behavior_command = 'python scripts.selenium-browsing-automation.scripts.browsing.endless-scroll.py' 
     elif behavior is None:
         logging.warning(f'Target behavior for `{client.name}` not found; will sleep.')
         pass
@@ -350,7 +360,7 @@ if __name__ == "__main__":
     # connected to VPN, sequentially.
     #
     # TODO: Make event listener for startup non-blocking.
-    routers, clients = listen_for_container_startup(timeout=60)
+    routers, clients = listen_for_container_startup(timeout=200)
 
     listen_for_interrupt(handler=lambda: handle_interrupt(routers, clients))
     
