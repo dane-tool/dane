@@ -1,7 +1,7 @@
 
 .PHONY: start run up
 d ?= 
-start run up: init raw
+start run up: compose raw
 # Start up all of the containers defined in our docker compose yaml. If Linux or
 # MacOS is being used then the unix override will be applied so that the traffic
 # control is able to work!
@@ -35,10 +35,10 @@ down:
 	down \
 	--remove-orphans
 
-.PHONY: init
+.PHONY: compose
 tool_dir ?= 
 config_file ?= 
-init:
+compose:
 # Build the compose file from given configuration in config.py
 	docker run \
 	--rm \

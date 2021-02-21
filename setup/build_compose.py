@@ -92,6 +92,9 @@ def main(tool_dir, config_file, env_file, data_dir):
             client['labels']['com.netem.vpn.enabled'] = config['vpn']['enabled']
             client['labels']['com.netem.vpn.server'] = config['vpn']['server']
 
+            # Specify shared memory
+            client['shm_size'] = config['client']['shared_memory_size']
+
             compose['services'][client_name] = client
 
     built_file = Path(tool_dir, 'built/docker-compose.yml')
