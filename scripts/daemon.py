@@ -81,18 +81,6 @@ def setup_router(router):
     latency = router.labels.get(LABEL_PREFIX+'tc.latency')
     bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
 
-    # Our tc commands simply inject delay. In order to get the observed ping as
-    # close to the target as possible, we can first run a short ping test then
-    # inject the difference.
-    exitcode, output = router.exec_run(
-        ['ping', '-w', '4', '-c', '4', '-q', '8.8.8.8']
-    )
-
-    curr_ping = float(output.decode().strip().split()[-2].split('/')[1])
-
-    value, unit = re.match(r'(\d+)(\w+)', latency).groups()
-    latency_to_inject = f'{round(max(0, float(value) - curr_ping))}{unit}'
-
     # We ultimately rely upon the router to run a script which does all
     # necessary ip route/table manipulations and runs tc commands to emulate our
     # desired network conditions.
@@ -100,7 +88,7 @@ def setup_router(router):
 
     exitcode, output = router.exec_run(
         ['/bin/sh', '-c',
-        f'/scripts/router/network-setup.sh {service_name} {latency_to_inject} {bandwidth}']
+        f'/scripts/router/network-setup.sh {service_name} {latency} {bandwidth}']
     )
 
     if exitcode != 0:

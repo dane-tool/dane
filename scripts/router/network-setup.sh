@@ -39,11 +39,20 @@ iptables -t nat -A POSTROUTING -o "$iface_ext" -j MASQUERADE
 
 # Finally, we can use tc to inject latency into the external interface and set
 # bandwidth on the internal interface.
-#
+
 # If we attempt to set latency on the internal interface, we'd end up with
 # double latency since packets would be delayed being sent to and coming from
 # the intranet.
 #
+# We can run a quick ping test to only inject the difference between our current
+# and target latency.
+curr_val=$(ping -c4 -w4 8.8.8.8 | tail -1 | cut -d'=' -f2 | cut -d'/' -f2) # Avg
+tmp=$(echo "$latency" | sed -r 's/^(\d+)(\w+)$/\1 \2/')
+target_val=$(echo "$tmp" | cut -d' ' -f1)
+target_unit=$(echo "$tmp" | cut -d' ' -f2)
+to_inject=$(printf %.0f $(echo "$target_val - $curr_val" | bc))
+tc qdisc add dev "$iface_ext" root netem delay "$to_inject$target_unit"
+
 # We can't actually limit ingress bandwidth (that would entail preventing other
 # parties from sending you data!), and utilizing an IFB interface to emulate
 # ingress rate limiting doesn't work on Mac or Windows.
@@ -51,7 +60,6 @@ iptables -t nat -A POSTROUTING -o "$iface_ext" -j MASQUERADE
 # The router approach we're using works really well for this, however, since we
 # can **just limit the egress on our internal interface**! This allows our
 # router to act as the buffer :)
-tc qdisc add dev "$iface_ext" root netem delay "$latency"
 tc qdisc add dev "$iface_int" root netem rate "$bandwidth"
 
 exit 0
