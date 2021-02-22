@@ -22,12 +22,15 @@ router:
   image: netem-router
   networks:
     default:
-      priority: 1000 # Ensure we use the eth0 interface
+      priority: 1000 # Ensure we use the eth0 interface (doesn't work in practice)
+      aliases: []
     NETWORK_VALUE:
       aliases:
         - router
   cap_add:
     - NET_ADMIN
+  volumes:
+    - ../scripts/:/scripts/
   labels:
     com.netem.type: router
     com.netem.tc.latency: LATENCY_VALUE

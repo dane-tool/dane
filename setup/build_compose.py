@@ -67,6 +67,7 @@ def main(tool_dir, config_file, env_file, data_dir):
         
         router = copy.deepcopy(components['router'])
         router_name = f'router-{network_name}'
+        router['networks']['default']['aliases'].append(f'{router_name}.default')
         router['networks'][network_name] = router['networks'].pop('NETWORK_VALUE')
         router['labels']['com.netem.tc.latency'] = latency
         router['labels']['com.netem.tc.bandwidth'] = bandwidth

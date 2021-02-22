@@ -78,17 +78,6 @@ def setup_router(router):
 
     ## Networking configuration
 
-    # Re-route packets within the network.
-    reroute_command = 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'
-
-    router.exec_run(
-        reroute_command
-    )
-
-    logging.info(f'Packet rerouting for `{router.name}` complete.')
-
-    ## Network emulation
-
     latency = router.labels.get(LABEL_PREFIX+'tc.latency')
     bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
 
@@ -99,18 +88,25 @@ def setup_router(router):
         ['ping', '-w', '4', '-c', '4', '-q', '8.8.8.8']
     )
 
-
     curr_ping = float(output.decode().strip().split()[-2].split('/')[1])
 
     value, unit = re.match(r'(\d+)(\w+)', latency).groups()
     latency_to_inject = f'{round(max(0, float(value) - curr_ping))}{unit}'
 
-    tc_command = f'tcset eth0 --delay {latency_to_inject} --rate {bandwidth} --direction incoming'
-    router.exec_run(
-        tc_command
+    # We ultimately rely upon the router to run a script which does all
+    # necessary ip route/table manipulations and runs tc commands to emulate our
+    # desired network conditions.
+    service_name = router.labels['com.docker.compose.service']
+
+    exitcode, output = router.exec_run(
+        ['/bin/sh', '-c',
+        f'/scripts/router/network-setup.sh {service_name} {latency_to_inject} {bandwidth}']
     )
 
-    logging.info(f'Network emulation for `{router.name}` complete.')
+    if exitcode != 0:
+        raise Exception(f'Network configuration failed for router `{router.name}`.\n{output}')
+    
+    logging.info(f'Network configuration for `{router.name}` complete.')
 
 def teardown_router(router):
 
