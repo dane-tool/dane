@@ -39,6 +39,7 @@ import docker
 import json
 import time
 import logging
+import re
 import signal
 import sys
 
@@ -91,9 +92,20 @@ def setup_router(router):
     latency = router.labels.get(LABEL_PREFIX+'tc.latency')
     bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
 
-    # TODO: You know what? We could totally have the router run a pingtest to
-    # get the current latency before injecting the additional latency...
-    tc_command = f'tcset eth0 --delay {latency} --rate {bandwidth} --direction incoming'
+    # Our tc commands simply inject delay. In order to get the observed ping as
+    # close to the target as possible, we can first run a short ping test then
+    # inject the difference.
+    exitcode, output = router.exec_run(
+        ['ping', '-w', '4', '-c', '4', '-q', '8.8.8.8']
+    )
+
+
+    curr_ping = float(output.decode().strip().split()[-2].split('/')[1])
+
+    value, unit = re.match(r'(\d+)(\w+)', latency).groups()
+    latency_to_inject = f'{round(max(0, float(value) - curr_ping))}{unit}'
+
+    tc_command = f'tcset eth0 --delay {latency_to_inject} --rate {bandwidth} --direction incoming'
     router.exec_run(
         tc_command
     )
