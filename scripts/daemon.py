@@ -15,8 +15,9 @@
 #
 # When a container starts up, the daemon will examine its labels and exec
 # commands to establish a vpn connection, run automated browsing, and collect
-# network-stats. The (now updated) labels from this container's router will be
-# used in the filename of the network-stats output.
+# network-stats. To properly name the network-stats output file with the current
+# network conditions, a speed test is run prior to launching the behavior and
+# running network-stats.
 #
 # After a little bit of time, the daemon will stop listening to docker startup
 # events and start listening for an interrupt signal. When received, the daemon
@@ -90,11 +91,11 @@ def setup_router(router):
     if exitcode != 0:
         raise Exception(f'Network configuration failed for router `{router.name}`.\n{output}')
 
-    # We'll re-set the labels to their achieved values so the clients can use
-    # them in their naming convention.
-    conditions = output.decode().split() # Tuple of achieved latency, bandwidth
-    router.labels[LABEL_PREFIX+'tc.latency'] = conditions[0]
-    router.labels[LABEL_PREFIX+'tc.bandwidth'] = conditions[1]
+    # # We'll re-set the labels to their achieved values so the clients can use
+    # # them in their naming convention.
+    # conditions = output.decode().split() # Tuple of achieved latency, bandwidth
+    # router.labels[LABEL_PREFIX+'tc.latency'] = conditions[0]
+    # router.labels[LABEL_PREFIX+'tc.bandwidth'] = conditions[1]
     
     logging.info(f'Network configuration for `{router.name}` complete.')
 
@@ -163,6 +164,25 @@ def setup_client(client, routers=[]):
 
         logging.info(f'Client `{client.name}` connected to VPN.')
 
+    ## Before we launch the behavior, we'll run a speed test
+
+    logging.info(f'Running speed test in `{client.name}`')
+    exitcode, output = client.exec_run(
+        'speedtest --json --no-upload'
+    )
+    if exitcode != 0:
+        raise Exception(f'Speedtest failed in `{client.name}`\n{output}')
+    
+    speedtest = json.loads(output)
+    
+    # TODO: Speedtest-cli's reported ping is consistently much higher than a
+    # normal ping test reveal -- often double.
+    #
+    # Either replace with a ping test or find an alternative to speedtest-cli
+    latency = f'{round(speedtest["ping"])}ms'
+    # Note that this outputs download speed in bit/s, so we'll convert to Mbit/s
+    bandwidth = f'{round(speedtest["download"] / 1e6)}Mbit'
+
     ## Behavior launching
 
     behavior = client.labels.get(LABEL_PREFIX+'behavior')
@@ -196,13 +216,13 @@ def setup_client(client, routers=[]):
 
     ## Network-stats collection
 
-    # We'll use the router's network condition labels in the filename.
-    network = list(client.attrs['NetworkSettings']['Networks'].keys())[0]
-    router = next(filter(lambda r: network in r.attrs['NetworkSettings']['Networks'], routers))
+    # # We'll use the router's network condition labels in the filename.
+    # network = list(client.attrs['NetworkSettings']['Networks'].keys())[0]
+    # router = next(filter(lambda r: network in r.attrs['NetworkSettings']['Networks'], routers))
 
-    latency = router.labels.get(LABEL_PREFIX+'tc.latency')
-    bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
-    logging.info(f'{latency} {bandwidth}')
+    # latency = router.labels.get(LABEL_PREFIX+'tc.latency')
+    # bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
+    # logging.info(f'{latency} {bandwidth}')
 
     details = f'{latency}-{bandwidth}-{behavior}'
 

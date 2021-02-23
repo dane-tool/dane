@@ -66,24 +66,27 @@ tc qdisc add dev "$iface_ext" root netem delay "$to_inject$latency_unit"
 # router to act as the buffer :)
 tc qdisc add dev "$iface_int" root netem rate "$bandwidth"
 
-# Bandwidth, may be 'limited' to a value greater than the host network can even
-# even achieve! Assuming the tc bandwith limiting is accurate, we can therefore
-# assume our actual current bandwidth in this intranet is equal to the min of
-# the host bandwidth and target bandwidth.
-tmp=$(echo "$bandwidth" | sed -r 's/^(\d+)(\w+)$/\1 \2/')
-bandwidth_val=$(echo "$tmp" | cut -d' ' -f1)
-bandwidth_unit=$(echo "$tmp" | cut -d' ' -f2)
-
-# TODO: Speedtest-cli doesn't seem very accurate... find a better replacement?
-test_results=$(speedtest --no-upload --json)
-down_bps=$(echo "$test_results" | sed -r 's/^.*"download": (\d+).*$/\1/')
-down_Mbps=$(printf %.0f $(echo "$down_bps/(1*10^6)" | bc -l))
-achieved_bandwidth=$([ $down_Mbps -le $bandwidth_val ] && echo "$down_Mbps" || echo "$bandwidth_val")
-
-# /\/\/\/\/\
-# TODO: This is very fragile to units! If any unit besides Mbps is used in the
-# configuration, this comparison will break...
-# \/\/\/\/\/
-printf "$achieved_latency$latency_unit $achieved_bandwidth$bandwidth_unit"
+# OLD: I had the speed test run in the router before... but then things like VPN
+# connections aren't reflected in the bandwidth since they are fully client-side
+# 
+# # Bandwidth, may be 'limited' to a value greater than the host network can even
+# # even achieve! Assuming the tc bandwith limiting is accurate, we can therefore
+# # assume our actual current bandwidth in this intranet is equal to the min of
+# # the host bandwidth and target bandwidth.
+# tmp=$(echo "$bandwidth" | sed -r 's/^(\d+)(\w+)$/\1 \2/')
+# bandwidth_val=$(echo "$tmp" | cut -d' ' -f1)
+# bandwidth_unit=$(echo "$tmp" | cut -d' ' -f2)
+# 
+# # TODO: Speedtest-cli doesn't seem very accurate... find a better replacement?
+# test_results=$(speedtest --no-upload --json)
+# down_bps=$(echo "$test_results" | sed -r 's/^.*"download": (\d+).*$/\1/')
+# down_Mbps=$(printf %.0f $(echo "$down_bps/(1*10^6)" | bc -l))
+# achieved_bandwidth=$([ $down_Mbps -le $bandwidth_val ] && echo "$down_Mbps" || echo "$bandwidth_val")
+# 
+# # /\/\/\/\/\
+# # TODO: This is very fragile to units! If any unit besides Mbps is used in the
+# # configuration, this comparison will break...
+# # \/\/\/\/\/
+# printf "$achieved_latency$latency_unit $achieved_bandwidth$bandwidth_unit"
 
 exit 0
