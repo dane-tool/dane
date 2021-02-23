@@ -1,5 +1,6 @@
 #!/bin/sh
-#
+set -e # (exit on error)
+
 # Network Setup
 # =============
 #
@@ -45,13 +46,16 @@ iptables -t nat -A POSTROUTING -o "$iface_ext" -j MASQUERADE
 # the intranet.
 #
 # We can run a quick ping test to only inject the difference between our current
-# and target latency.
-curr_val=$(ping -c4 -w4 8.8.8.8 | tail -1 | cut -d'=' -f2 | cut -d'/' -f2) # Avg
+# and target latency (with a minimum of zero if our current latency is greater
+# than the configured latency)
+curr_latency=$(ping -c4 -w4 8.8.8.8 | tail -1 | cut -d'=' -f2 | cut -d'/' -f2) # Avg
 tmp=$(echo "$latency" | sed -r 's/^(\d+)(\w+)$/\1 \2/')
-target_val=$(echo "$tmp" | cut -d' ' -f1)
-target_unit=$(echo "$tmp" | cut -d' ' -f2)
-to_inject=$(printf %.0f $(echo "$target_val - $curr_val" | bc))
-tc qdisc add dev "$iface_ext" root netem delay "$to_inject$target_unit"
+latency_val=$(echo "$tmp" | cut -d' ' -f1)
+latency_unit=$(echo "$tmp" | cut -d' ' -f2)
+to_inject=$(printf %.0f $(echo "$latency_val - $curr_latency" | bc))
+to_inject=$([ $to_inject -ge "0" ] && echo "$to_inject" || echo "0")
+achieved_latency=$(printf %.0f $(echo "$curr_latency + $to_inject" | bc))
+tc qdisc add dev "$iface_ext" root netem delay "$to_inject$latency_unit"
 
 # We can't actually limit ingress bandwidth (that would entail preventing other
 # parties from sending you data!), and utilizing an IFB interface to emulate
@@ -61,5 +65,25 @@ tc qdisc add dev "$iface_ext" root netem delay "$to_inject$target_unit"
 # can **just limit the egress on our internal interface**! This allows our
 # router to act as the buffer :)
 tc qdisc add dev "$iface_int" root netem rate "$bandwidth"
+
+# Bandwidth, may be 'limited' to a value greater than the host network can even
+# even achieve! Assuming the tc bandwith limiting is accurate, we can therefore
+# assume our actual current bandwidth in this intranet is equal to the min of
+# the host bandwidth and target bandwidth.
+tmp=$(echo "$bandwidth" | sed -r 's/^(\d+)(\w+)$/\1 \2/')
+bandwidth_val=$(echo "$tmp" | cut -d' ' -f1)
+bandwidth_unit=$(echo "$tmp" | cut -d' ' -f2)
+
+# TODO: Speedtest-cli doesn't seem very accurate... find a better replacement?
+test_results=$(speedtest --no-upload --json)
+down_bps=$(echo "$test_results" | sed -r 's/^.*"download": (\d+).*$/\1/')
+down_Mbps=$(printf %.0f $(echo "$down_bps/(1*10^6)" | bc -l))
+achieved_bandwidth=$([ $down_Mbps -le $bandwidth_val ] && echo "$down_Mbps" || echo "$bandwidth_val")
+
+# /\/\/\/\/\
+# TODO: This is very fragile to units! If any unit besides Mbps is used in the
+# configuration, this comparison will break...
+# \/\/\/\/\/
+printf "$achieved_latency$latency_unit $achieved_bandwidth$bandwidth_unit"
 
 exit 0
