@@ -182,6 +182,16 @@ def setup_client(client):
         behavior_command = 'python -m scripts.selenium-browsing-automation.scripts.streaming.youtube_selenium.py'
     elif behavior == 'browsing':
         behavior_command = 'python scripts.selenium-browsing-automation.scripts.browsing.endless-scroll.py' 
+
+    # We allow custom scripts to be run when behavior is `custom/<filename.py>`,
+    # in which case we tell the client to pip install any requirements and run
+    # that file.
+    elif behavior.startswith('custom/'):
+        path_to_script = f'scripts/{behavior}'
+        path_to_requirements = 'scripts/custom/requirements.txt'
+        
+        behavior_command = f'pip install -r {path_to_requirements}; python {path_to_script}'
+
     elif behavior is None:
         logging.warning(f'Target behavior for `{client.name}` not found; will sleep.')
         pass

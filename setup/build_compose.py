@@ -78,8 +78,11 @@ def main(tool_dir, config_file, env_file, data_dir):
         for behavior in behaviors: # -- Clients
 
             client = copy.deepcopy(components['client'])
-            # This doesn't handle duplicates/replicas.
-            client_name = f'client-{network_name}-{behavior}'
+            
+            # If the behavior is to use a custom script, we strip out 'custom/'
+            # from the behavior to make the compose service name compatible.
+            behavior_name = behavior if not behavior.startswith('custom/') else behavior[len('custom/'):]
+            client_name = f'client-{network_name}-{behavior_name}'
             client['depends_on'].append(router_name)
             client['networks'].append(network_name)
             client['labels']['com.netem.behavior'] = behavior
@@ -95,6 +98,8 @@ def main(tool_dir, config_file, env_file, data_dir):
             # Specify shared memory
             client['shm_size'] = config['client']['shared_memory_size']
 
+            # NOTE: This doesn't handle duplicates/replicas. The service name
+            # will be the same and thus will share the same key in the dict.
             compose['services'][client_name] = client
 
     built_file = Path(tool_dir, 'built/docker-compose.yml')
