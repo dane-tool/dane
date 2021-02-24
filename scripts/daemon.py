@@ -160,7 +160,7 @@ def setup_client(client, routers=[]):
         ])
 
         if exitcode != 0 :
-            raise Exception(f'{client.name} did not connect to the VPN!')
+            raise Exception(f'{client.name} did not connect to the VPN!\n\n{output}')
 
         logging.info(f'Client `{client.name}` connected to VPN.')
 
@@ -171,7 +171,7 @@ def setup_client(client, routers=[]):
         'speedtest --json --no-upload'
     )
     if exitcode != 0:
-        raise Exception(f'Speedtest failed in `{client.name}`\n{output}')
+        raise Exception(f'Speedtest failed in `{client.name}`\n\n{output}')
     
     speedtest = json.loads(output)
     
