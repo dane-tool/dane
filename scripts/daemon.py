@@ -167,21 +167,22 @@ def setup_client(client, routers=[]):
     ## Before we launch the behavior, we'll run a speed test
 
     logging.info(f'Running speed test in `{client.name}`')
-    exitcode, output = client.exec_run(
-        'speedtest --json --no-upload'
-    )
+    exitcode, output = client.exec_run([
+        'speedtest', '--accept-license', '-f', 'json'
+    ])
     if exitcode != 0:
         raise Exception(f'Speedtest failed in `{client.name}`\n\n{output}')
+
+    # Note that the speedtest produces a license banner (seems unavoidable), so
+    # we can just take the last line of output.
+    speedtest = json.loads(output.decode().strip().split('\n')[-1])
     
-    speedtest = json.loads(output)
-    
-    # TODO: Speedtest-cli's reported ping is consistently much higher than a
-    # normal ping test reveal -- often double.
-    #
-    # Either replace with a ping test or find an alternative to speedtest-cli
-    latency = f'{round(speedtest["ping"])}ms'
-    # Note that this outputs download speed in bit/s, so we'll convert to Mbit/s
-    bandwidth = f'{round(speedtest["download"] / 1e6)}Mbit'
+    latency = f'{round(speedtest["ping"]["latency"])}ms'
+    # Note that this outputs download speed in bytes/s, so we'll need to convert
+    # to Mbit/s
+    bits_per_byte = 8
+    mega = 1e6
+    bandwidth = f'{round(speedtest["download"]["bandwidth"] * bits_per_byte / mega)}Mbit'
 
     ## Behavior launching
 
