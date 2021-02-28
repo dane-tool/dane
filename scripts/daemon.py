@@ -2,19 +2,22 @@
 # ======
 #
 # The daemon is responsible for issuing commands to all other containers. As
-# such, the daemon is essentially just funning a bunch of docker exec's.
+# such, the daemon is essentially just running a bunch of docker exec's.
 #
 # The daemon is created before all other containers, so it starts to listen for
 # container startup events in order to set up the following clients and routers.
 #
 # When a router starts up, the daemon will examine its labels and exec a network
-# emulation command in the router based on those labels.
+# emulation command in the router based on those labels. The router takes care
+# of configuring the network to fit our targets, and will run a speedtest to
+# find the achieved conditions. The labels for the router will be updated to
+# match the achieved conditions.
 #
 # When a container starts up, the daemon will examine its labels and exec
 # commands to establish a vpn connection, run automated browsing, and collect
-# network-stats. Before network stats is run, a speedtest is conducted in the
-# client container in order to produce accurate labels for the network-stats
-# file name.
+# network-stats. To properly name the network-stats output file with the current
+# network conditions, a speed test is run prior to launching the behavior and
+# running network-stats.
 #
 # After a little bit of time, the daemon will stop listening to docker startup
 # events and start listening for an interrupt signal. When received, the daemon
@@ -26,11 +29,6 @@
 # functions seem to likewise get interrupted. Therefore it is advisable to set
 # a very generous self-timeout in the function call within main.
 #
-# NOTE: Because a speedtest needs to be conducted before network-stats is run,
-# behavior scripts launch quite a bit sooner than network-stats. This could mean
-# some initial startup behavior when a particular script is launched (e.g. the
-# loading of a webpage) will not be observed.
-#
 # TODO: The setup for each router and client should be non-blocking.
 #
 
@@ -39,6 +37,7 @@ import docker
 import json
 import time
 import logging
+import re
 import signal
 import sys
 
@@ -77,28 +76,28 @@ def setup_router(router):
 
     ## Networking configuration
 
-    # Re-route packets within the network.
-    reroute_command = 'iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE'
-
-    router.exec_run(
-        reroute_command
-    )
-
-    logging.info(f'Packet rerouting for `{router.name}` complete.')
-
-    ## Network emulation
-
     latency = router.labels.get(LABEL_PREFIX+'tc.latency')
     bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
 
-    # TODO: You know what? We could totally have the router run a pingtest to
-    # get the current latency before injecting the additional latency...
-    tc_command = f'tcset eth0 --delay {latency} --rate {bandwidth} --direction incoming'
-    router.exec_run(
-        tc_command
+    # We ultimately rely upon the router to run a script which does all
+    # necessary ip route/table manipulations and runs tc commands to emulate our
+    # desired network conditions.
+    service_name = router.labels['com.docker.compose.service']
+
+    exitcode, output = router.exec_run(
+        ['scripts/router/network-setup.sh', service_name, latency, bandwidth]
     )
 
-    logging.info(f'Network emulation for `{router.name}` complete.')
+    if exitcode != 0:
+        raise Exception(f'Network configuration failed for router `{router.name}`.\n{output}')
+
+    # # We'll re-set the labels to their achieved values so the clients can use
+    # # them in their naming convention.
+    # conditions = output.decode().split() # Tuple of achieved latency, bandwidth
+    # router.labels[LABEL_PREFIX+'tc.latency'] = conditions[0]
+    # router.labels[LABEL_PREFIX+'tc.bandwidth'] = conditions[1]
+    
+    logging.info(f'Network configuration for `{router.name}` complete.')
 
 def teardown_router(router):
 
@@ -108,7 +107,7 @@ def teardown_router(router):
 
 # We'll do the setup for each container as it is created. To do this, we'll
 # listen for docker 'start' events, and use a callback.
-def setup_client(client):
+def setup_client(client, routers=[]):
     """
     Callback to docker startup event listener. Runs, in order:
     1. Connect to router
@@ -161,9 +160,29 @@ def setup_client(client):
         ])
 
         if exitcode != 0 :
-            raise Exception(f'{client.name} did not connect to the VPN!')
+            raise Exception(f'{client.name} did not connect to the VPN!\n\n{output}')
 
         logging.info(f'Client `{client.name}` connected to VPN.')
+
+    ## Before we launch the behavior, we'll run a speed test
+
+    logging.info(f'Running speed test in `{client.name}`')
+    exitcode, output = client.exec_run([
+        'speedtest', '--accept-license', '-f', 'json'
+    ])
+    if exitcode != 0:
+        raise Exception(f'Speedtest failed in `{client.name}`\n\n{output}')
+
+    # Note that the speedtest produces a license banner (seems unavoidable), so
+    # we can just take the last line of output.
+    speedtest = json.loads(output.decode().strip().split('\n')[-1])
+    
+    latency = f'{round(speedtest["ping"]["latency"])}ms'
+    # Note that this outputs download speed in bytes/s, so we'll need to convert
+    # to Mbit/s
+    bits_per_byte = 8
+    mega = 1e6
+    bandwidth = f'{round(speedtest["download"]["bandwidth"] * bits_per_byte / mega)}Mbit'
 
     ## Behavior launching
 
@@ -208,23 +227,15 @@ def setup_client(client):
 
     ## Network-stats collection
 
-    # Run a speedtest in the client in order to pass the correct network labels
-    # to the network-stats filename. For now we're just interested in download
-    # speed ('bandwidth') and ping ('latency')
-    logging.info(f'Running speed test in `{client.name}`')
-    exitcode, output = client.exec_run(
-        'speedtest --json --no-upload'
-    )
-    if exitcode != 0:
-        raise Exception(f'Speedtest failed in `{client.name}`')
-    
-    speedtest = json.loads(output)
-    
-    latency = round(speedtest['ping'])
-    # Note that this outputs download speed in bit/s, so we'll convert to Mbit/s
-    bandwidth = round(speedtest['download'] * 1e-6)
+    # # We'll use the router's network condition labels in the filename.
+    # network = list(client.attrs['NetworkSettings']['Networks'].keys())[0]
+    # router = next(filter(lambda r: network in r.attrs['NetworkSettings']['Networks'], routers))
 
-    details = f'{latency}ms-{bandwidth}mbit-{behavior}'
+    # latency = router.labels.get(LABEL_PREFIX+'tc.latency')
+    # bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
+    # logging.info(f'{latency} {bandwidth}')
+
+    details = f'{latency}-{bandwidth}-{behavior}'
 
     network_stats_command = f'python scripts/client/collection.py {details}'
 
@@ -290,6 +301,12 @@ def listen_for_container_startup(timeout=15):
     #
     # Everything should be non-blocking.
     # \/\/\/\/\/
+    #
+    # /\/\/\/\/\/\/\/\
+    # TODO: Probably a better approach overall would be to wait a short amount
+    # of time until all containers are started, then loop through -- setting up
+    # routers first, then clients.
+    # \/\/\/\/\/\/\/\/
     try:
         for event in API.events(
                 # We're only looking at containers that were started from our
@@ -312,7 +329,7 @@ def listen_for_container_startup(timeout=15):
             elif container_type == 'client':
                 client = API.containers.get(event['id'])
                 clients.append(client)
-                setup_client(client)
+                setup_client(client, routers=routers)
             elif container_type == 'daemon':
                 pass
             else:
