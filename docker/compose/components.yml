@@ -5,7 +5,7 @@
 client:
   depends_on:
     - daemon
-  image: netem-client
+  image: dane-client
   networks: []
   cap_add:
     - NET_ADMIN
@@ -13,13 +13,13 @@ client:
     - ../scripts/:/scripts/
   env_file: []
   labels:
-    com.netem.type: client
-    com.netem.behavior: BEHAVIOR_VALUE
+    com.dane.type: client
+    com.dane.behavior: BEHAVIOR_VALUE
 
 router:
   depends_on:
     - daemon
-  image: netem-router
+  image: dane-router
   networks:
     default:
       priority: 1000 # Ensure we use the eth0 interface (doesn't work in practice)
@@ -32,8 +32,8 @@ router:
   volumes:
     - ../scripts/:/scripts/
   labels:
-    com.netem.type: router
-    com.netem.tc.latency: LATENCY_VALUE
-    com.netem.tc.bandwidth: BANDWIDTH_VALUE
+    com.dane.type: router
+    com.dane.tc.latency: LATENCY_VALUE
+    com.dane.tc.bandwidth: BANDWIDTH_VALUE
 
 network: {}

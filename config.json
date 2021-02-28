@@ -5,16 +5,12 @@
     ],
     "conditions": [
         {
-            "latency": "100ms",
-            "bandwidth": "5Mbps"
-        },
-        {
-            "latency": "40ms",
-            "bandwidth": "15Mbps"
+            "latency": "200ms",
+            "bandwidth": "3Mbit"
         },
         {
             "latency": "0ms",
-            "bandwidth": "999Mbps"
+            "bandwidth": "999Mbit"
         }
     ],
     "vpn": {

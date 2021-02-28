@@ -48,8 +48,7 @@ RUN apt-get install -y openconnect && \
 # We'll use a pre-build C++ binary from Ookla in order to run a speedtest from
 # the command line.
 # See: https://www.speedtest.net/apps/cli
-RUN pip uninstall -y speedtest-cli && \
-    apt-get install gnupg1 apt-transport-https dirmngr && \
+RUN apt-get install gnupg1 apt-transport-https dirmngr && \
     export INSTALL_KEY=379CE192D401AB61 && \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY && \
     echo "deb https://ookla.bintray.com/debian generic main" | tee  /etc/apt/sources.list.d/speedtest.list && \

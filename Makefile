@@ -13,7 +13,7 @@ start run up: compose raw
 raw:
 # Start up all containers using an already created compose file.
 	docker-compose \
-	-p netem -f built/docker-compose.yml \
+	-p dane -f built/docker-compose.yml \
 	$(if \
 		$(filter $(shell docker version -f {{.Client.Os}}),linux darwin),\
 		-f docker/compose/docker-compose.unix.yml,\
@@ -23,7 +23,7 @@ raw:
 	$(if $(d),-d,)
 
 .PHONY: stop interrupt
-name ?= netem_daemon_1
+name ?= dane_daemon_1
 stop interrupt:
 # Send a SIGINT signal to a container, defaulting to the daemon.
 	docker kill --signal SIGINT $(name)
@@ -31,7 +31,7 @@ stop interrupt:
 .PHONY: down
 down:
 	docker-compose \
-	-p netem -f built/docker-compose.yml \
+	-p dane -f built/docker-compose.yml \
 	down \
 	--remove-orphans
 
@@ -43,7 +43,7 @@ compose:
 	docker run \
 	--rm \
 	-v "$(PWD):/home" \
-	netem-init \
+	dane-compose \
 	python setup/build_compose.py \
 	$(if $(tool_dir),--src $(tool_dir),) \
 	$(if $(config_file),-config $(config_file),)
@@ -58,42 +58,42 @@ ifeq ($(only),all)
 	docker build \
 	-f docker/client/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-client:$(tag) .
+	-t dane-client:$(tag) .
 
 	docker build \
 	-f docker/daemon/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-daemon:$(tag) .
+	-t dane-daemon:$(tag) .
 
 	docker build \
 	-f docker/router/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-router:$(tag) .
+	-t dane-router:$(tag) .
 
 	docker build \
 	-f Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-init:$(tag) .
+	-t dane-compose:$(tag) .
 
-else ifeq ($(only),init)
+else ifeq ($(only),compose)
 	docker build \
 	-f Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-init:$(tag) .
+	-t dane-compose:$(tag) .
 else
 	docker build \
 	-f docker/$(only)/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t netem-$(only):$(tag) .
+	-t dane-$(only):$(tag) .
 endif
 
 .PHONY: clean
 clean: stop
 # Make sure everything is stopped and remove all built images
-	docker rmi netem-client
-	docker rmi netem-daemon
-	docker rmi netem-router
-	docker rmi netem-init
+	docker rmi dane-client
+	docker rmi dane-daemon
+	docker rmi dane-router
+	docker rmi dane-compose
 
 .PHONY: exec
 service ?= daemon
@@ -101,5 +101,5 @@ command ?= sh
 exec:
 # Exec into a shell for a given service.
 	docker-compose \
-	-p netem -f built/docker-compose.yml \
+	-p dane -f built/docker-compose.yml \
 	exec $(service) $(command)

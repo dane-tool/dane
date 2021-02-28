@@ -64,8 +64,8 @@ def redirect_to_out(command):
     return f'sh -c "{command} >> /proc/1/fd/1"'
     # return f'{command} >> /proc/1/fd/1'
 
-PROJECT_NAME = 'netem'
-LABEL_PREFIX = 'com.netem.'
+PROJECT_NAME = 'dane'
+LABEL_PREFIX = 'com.dane.'
 
 # The DOCKER_HOST environment variable should already be defined
 API = docker.from_env()
@@ -320,7 +320,7 @@ def listen_for_container_startup(timeout=15):
             ):
             labels = event['Actor']['Attributes']
 
-            container_type = labels.get('com.netem.type')
+            container_type = labels.get('com.dane.type')
 
             if container_type == 'router':
                 router = API.containers.get(event['id'])
@@ -372,7 +372,7 @@ def listen_for_interrupt(handler, timeout=None):
     logging.info('Listening for daemon interrupt.')
     logging.warning('\n\
 ========\n\
-Please run `make stop` or `docker kill -s SIGINT netem_daemon_1` to stop\n\
+Please run `make stop` or `docker kill -s SIGINT dane_daemon_1` to stop\n\
 this tool. Failure to do so will result in data loss.\n\
 ========')
 
@@ -387,7 +387,7 @@ if __name__ == "__main__":
     # connected to VPN, sequentially.
     #
     # TODO: Make event listener for startup non-blocking.
-    routers, clients = listen_for_container_startup(timeout=200)
+    routers, clients = listen_for_container_startup(timeout=400)
 
     listen_for_interrupt(handler=lambda: handle_interrupt(routers, clients))
     

@@ -69,8 +69,8 @@ def main(tool_dir, config_file, env_file, data_dir):
         router_name = f'router-{network_name}'
         router['networks']['default']['aliases'].append(f'{router_name}.default')
         router['networks'][network_name] = router['networks'].pop('NETWORK_VALUE')
-        router['labels']['com.netem.tc.latency'] = latency
-        router['labels']['com.netem.tc.bandwidth'] = bandwidth
+        router['labels']['com.dane.tc.latency'] = latency
+        router['labels']['com.dane.tc.bandwidth'] = bandwidth
 
         compose['services'][router_name] = router
 
@@ -86,15 +86,15 @@ def main(tool_dir, config_file, env_file, data_dir):
             client_name = f'client-{network_name}-{behavior_name}'
             client['depends_on'].append(router_name)
             client['networks'].append(network_name)
-            client['labels']['com.netem.behavior'] = behavior
+            client['labels']['com.dane.behavior'] = behavior
 
             client['env_file'].append(env_file)
             client['volumes'].append(f'{data_dir}:/data/')
 
             # Configure whether or not the vpn will be set up, the host address,
             # etc by passing labels to each client.
-            client['labels']['com.netem.vpn.enabled'] = config['vpn']['enabled']
-            client['labels']['com.netem.vpn.server'] = config['vpn']['server']
+            client['labels']['com.dane.vpn.enabled'] = config['vpn']['enabled']
+            client['labels']['com.dane.vpn.server'] = config['vpn']['server']
 
             # Specify shared memory
             client['shm_size'] = config['client']['shared_memory_size']

@@ -1,4 +1,4 @@
-# Netem Initializer
+# DANE Composer
 # =================
 #
 # This container will be responsible for creating the Docker Compose file which
