@@ -1,125 +1,49 @@
-# network-data-generation
+# DANE - Data Automation and Network Emulation Tool
 
-Generate network communication data for target tasks in diverse network conditions.
+<img align='right' src='docs/media/dane-transparent-small.png' height=248>
+
+DANE is a hackable dataset generation tool to collect network traffic in a variety of configurable network conditions.
+
+It runs on Windows, Mac, and Linux.
 
 **Table of contents**
-- [What does it do](#what-does-it-do)
-- [How to use](#how-to-use)
-- [Approach](#approach)
-- [Requirements](#requirements)
-- [Example](#example)
-- [Software / References](#software--references)
-- [Why doesn't this work for Windows and Mac?](#why-doesnt-this-work-for-windows-and-mac)
+- [Why use DANE?](#why-use-dane)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
 
-**Note:** Due to various Docker networking constraints, this tool is **currently only for Linux**. See [explanation](networking-issues).
 
-## What does it do
+## Why use DANE?
 
-TODO
+DANE provides two core functionalities:
 
-## How to use
+1. Automatically collect network traffic datasets in a parallelized manner
 
-1. Clone this repository with the submodule
-   ```
-   git clone --recurse-submodules
-   ```
-   then navigate to this directory.
-
-2. Build the Docker images
-   ```
-   make build
-   ```
-
-3. Specify target conditions and behaviors
-
-   ```json
-   # In `config.json`:
-   {
-      "behavior": [
-         "browsing",
-         "streaming"
-      ],
-      "conditions": [
-         {
-            "latency": "50ms",
-            "bandwidth": "10Mbps"
-         }
-      ]
-   }
-   ```
-
-4. Add secret configuration
-
-   Any usernames and passwords should be added to a `.env` file in the root directory of this project. At the moment these environment variables are used solely for logging in to the UCSD VPN.
-   ```
-   # In the .env file:
-   VPN_USERNAME=<your UCSD username>
-   VPN_USERGROUP=<the 'group' to use for the VPN -- probably "2-Step Secured - allthruucsd">
-   VPN_PASSWORD=<your UCSD password>
-   ```
-
-5. Run the tool, deploying all containers specified in the Compose file
-   ```
-   make
-   ```
-
-6. Interrupt the tool
+   Manual data collection for network traffic datasets is a long and tedious process—run the tool and you can easily collect multiple hours of data in one hour of time (magic!) with one or many desired 'user' behaviors.
    
-   To gracefully stop this tool, you must send an interrupt signal to the daemon. You can send this from a new terminal window or tab. Failure to send the interrupt will result in the data for that session not being collected.
-   ```
-   make stop
-   ```
+2. Emulate a diverse range of network conditions that are representative of the real world
 
-   The daemon will catch the interrupt and tear down all containers. Collected data will be present in `data/`.
+   Data representation is an increasingly relevant issue in all fields of data science, but generating a dataset while connected to a fixed network doesn't capture diversity in network conditions—in a single file, you can configure DANE to emulate a variety of network conditions, including latency and bandwidth.
 
-7. Finish with the tool completely
-   
-   Once you are completely done with the tool, you can teardown all components
-   ```
-   make down
-   ```
-   And you can remove the built Docker images from your machine with
-   ```
-   make clean
-   ```
-   (**Note:** you will need to rebuild the images if you choose to run the clean target)
+You can easily hack the tool to run custom scripts, custom data collection tools, and other custom software dependencies which support your particular research interest.
 
-## Approach
+## Documentation
 
-1. Clients and Daemon are launched with a `docker-compose.yml`
-   - Clients have labels to specify their target behavior and network conditions
-   - In the future, this file should be programmatically generated from configuration files to specify all desired behaviors and conditions (generating programmatically will also help with OS support)
-2. Daemon is in charge of executing all commands on the Clients.
-   1. Launches Controller container which attaches to the network of a Client and emulates conditions based on the labels
-   2. Executes target behavior script on Client based on label
-   3. Executes network-stats on Client using labels in the naming convention
-   4. Enforces time limit, interrupts and tears down application
-3. Network-stats output are saved to a data directory
+For all documentation, including a [quick start](linktbd), details about the [technical approach](linktbd), and [FAQs](linktbd), please consult the [**website 📖**](https://dane-tool.github.io/dane).  
+https://dane-tool.github.io/dane
 
-## Requirements
+[linktbd]: https://dane-tool.github.io/dane/
 
-This tool runs on Linux. You will need:
-- [**Docker 19.03+**](https://docs.docker.com/get-docker/)
-- [**Docker Compose 1.27+**](https://docs.docker.com/compose/install/)
-- [**GNU Make**](https://www.gnu.org/software/make/)
+## Contributing
 
-## Example
+See something you'd like improved? Better yet, have some improvements coded up locally you'd like to contribute?
 
-```bash
-make build # Set up images
-make run # Run the containerized network emulation
-```
+We welcome you to **submit an Issue** or **make a Pull Request** detailing your ideas!
 
-![](docs/media/demo.gif)
+## Acknowledgements
 
-## Software / References
+This project was originally created in affiliation with the **Halıcıoğlu Data Science Institute**'s data science program at UC San Diego.  
+https://hdsi.ucsd.edu/, https://dsc-capstone.github.io/
 
-- [netem]: https://wiki.linuxfoundation.org/networking/netem
-  [**TC NetEm documentation**][netem]. Used to emulate network conditions.
-- [compose]: https://github.com/compose-spec/compose-spec/blob/master/spec.md
-  [**Docker Compose YAML specification**][compose]. Used to handle options when launching multiple docker containers (clients and daemon).
-
-[networking-issues]: []
-## Why doesn't this work for Windows and Mac?
-
-**WIP**
+DANE was motivated and developed with the generous support of **Viasat**.  
+https://viasat.com/
