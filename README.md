@@ -29,7 +29,7 @@ You can easily hack the tool to run custom scripts, custom data collection tools
 
 ## Documentation
 
-For all documentation, including a [quick start](https://dane-tool.github.io/dane/#getting-started), details about the [technical approach](https://dane-tool.github.io/dane/#tool), and [FAQs](https://dane-tool.github.io/dane/#faq), please consult the [**website 📖**](https://dane-tool.github.io/dane).  
+For all documentation, including a [quick start](https://dane-tool.github.io/dane/guide/quickstart.html), details about the [technical approach](https://dane-tool.github.io/dane/guide/approach.html), and [FAQs](https://dane-tool.github.io/dane/guide/faq.html), please consult the [**website 📖**](https://dane-tool.github.io/dane).  
 https://dane-tool.github.io/dane
 
 [linktbd]: https://dane-tool.github.io/dane/
