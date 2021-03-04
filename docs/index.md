@@ -1,4 +1,4 @@
- <link rel="media/dane-transparent-small.png" type="image/png" href="favicon.png">
+<link rel="shortcut icon" type="image/png" href="media/favicon.png">
 <h1 align="center"><b>DANE - Data Automation and Network Emulation Tool</b> </h1>
 <hr>
 
@@ -155,7 +155,7 @@ We welcome you to submit an Issue or make a Pull Request detailing your ideas!
 # Acknowledgements
 
 This project was originally created in affiliation with the Halıcıoğlu Data Science Institute's data science program at UC San Diego.  
-(https://hdsi.ucsd.edu/), (https://dsc-capstone.github.io/)
+[](https://hdsi.ucsd.edu/), [](https://dsc-capstone.github.io/)
 
 DANE was motivated and developed with the generous support of Viasat.  
-(https://viasat.com/)
+[](https://viasat.com/)
