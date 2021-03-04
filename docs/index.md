@@ -2,7 +2,7 @@
 <h1 align="center"><b>DANE - Data Automation and Network Emulation Tool</b> </h1>
 <hr>
 
-# Why Use DANE?
+## Why Use DANE?
 
 DANE provides two core functionalities:
 
@@ -16,7 +16,7 @@ DANE provides two core functionalities:
 
 You can easily hack the tool to run custom scripts, custom data collection tools, and other custom software dependencies which support your particular research interest.
 
-# Tool
+## Tool
 
 Our tool establishes Docker containers with configurable network conditions,
 then runs target behaviors such as browsing the internet, and collects data on
@@ -44,43 +44,6 @@ git clone \
 https://github.com/dane-tool/dane.git \
 --recursive
 ```
-
-### Configuration
-
-See [`tool.json`](https://github.com/parkeraddison/generating-and-analyzing-network-traffic-in-diverse-network-conditions/blob/main/config/tool.json) for configuration:
-
-| Key        | Description                                                                                                                                                                             |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| behaviors  | List of one or more target behaviors. All target behaviors will be run for each specified set of network conditions. For possible values see [Target behaviors](#target-behaviors).     |
-| conditions | List of nested configuration specifying desired network conditions. E.g. `[{"latency": "50ms", "bandwidth": "10Mbps"}]`. For configuration see [Conditions config](#conditions-config). |
-| vpn        | Nested configuration for a VPN connection. For configuration see [VPN Config](#vpn-config).                                                                                             |
-
-<a name="target-behaviors"></a>
-**Target behaviors**
-
-| Value     | Description                                                               |
-| --------- | ------------------------------------------------------------------------- |
-| ping      | Ping a DNS server once every three seconds.                               |
-| script    | Run a script that replicates the `ping` behavior. **Will be deprecated**. |
-| none      | Do nothing.                                                               |
-| browsing  | Run a script to endlessly browse Twitter.                                 |
-| streaming | Run a script to endlessly watch YouTube.                                  |
-
-<a name="conditions-config"></a>
-**Conditions config**
-
-| Key       | Description                                                                       |
-| --------- | --------------------------------------------------------------------------------- |
-| latency   | Milliseconds. The desired amount of network latency to be injected. E.g. `"50ms"` |
-| bandwidth | Megabits per second. The desired download speed. E.g. `"10Mbps"`                  |
-
-<a name="vpn-config"></a>
-**VPN config**
-
-| Key     | Description                                                          |
-| ------- | -------------------------------------------------------------------- |
-| enabled | `true` or `false`. Whether or not a VPN should be used. **WIP**      |
-| server  | URL or IP to the desired VPN service. E.g. `"vpn.ucsd.edu"`. **WIP** |
 
 ### Environment file and secrets
 
@@ -124,38 +87,8 @@ After the tool has been stopped, data can be found in `data/`.
    git submodule update --init --recursive
    ```
 
-### Citing
-
-If you choose to use this tool, please cite it with the following BibTeX entry:
-
-```bibtex
-@misc{DANEv1.0,
-  author = {Addison, Parker and
-            Altekar, Sahil and
-            Yaseen, Danial},
-  title  = {DANE - Data Automation and Network Emulation Tool},
-  school = {University of California, San Diego},
-  year   = 2021,
-  url    = {https://github.com/dane-tool/dane}
-}
-```
-
-# Proof of Concept
+## Proof of Concept
 
 Check out an example of some work that can be done with DANE!
 
 (TODO - Link to Analysis Report)
-
-# Contributing
-
-See something you'd like improved? Better yet, have some improvements coded up locally you'd like to contribute?
-
-We welcome you to submit an Issue or make a Pull Request detailing your ideas!
-
-# Acknowledgements
-
-This project was originally created in affiliation with the Halıcıoğlu Data Science Institute's data science program at UC San Diego.  
-[https://hdsi.ucsd.edu/](https://hdsi.ucsd.edu/), [https://dsc-capstone.github.io/](https://dsc-capstone.github.io/)
-
-DANE was motivated and developed with the generous support of Viasat.  
-[https://viasat.com/](https://viasat.com/)
