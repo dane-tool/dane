@@ -2,9 +2,7 @@
 sort: 1
 ---
 
-# What Is / Why Use DANE?
-
-**(WIP)**
+# Why Use DANE?
 
 DANE provides two core functionalities:
 
