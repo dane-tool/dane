@@ -129,7 +129,7 @@ After the tool has been stopped, data can be found in `data/`.
 If you choose to use this tool, please cite it with the following BibTeX entry:
 
 ```bibtex
-@misc{tbd2021,
+@misc{DANEv1.0,
   author = {Addison, Parker and
             Altekar, Sahil and
             Yaseen, Danial},
@@ -155,7 +155,7 @@ We welcome you to submit an Issue or make a Pull Request detailing your ideas!
 # Acknowledgements
 
 This project was originally created in affiliation with the Halıcıoğlu Data Science Institute's data science program at UC San Diego.  
-![](https://hdsi.ucsd.edu/), ![](https://dsc-capstone.github.io/)
+[https://hdsi.ucsd.edu/](https://hdsi.ucsd.edu/), [https://dsc-capstone.github.io/](https://dsc-capstone.github.io/)
 
 DANE was motivated and developed with the generous support of Viasat.  
-![](https://viasat.com/)
+[https://viasat.com/](https://viasat.com/)
