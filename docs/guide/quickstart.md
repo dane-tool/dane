@@ -54,7 +54,7 @@ make stop
 
 ## Example
 
-![](media/demo.gif)
+![](../media/demo.gif)
 
 ## Data
 
