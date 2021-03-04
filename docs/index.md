@@ -1,7 +1,7 @@
 <h1 align="center"><b>DANE - Data Automation and Network Emulation Tool</b> </h1>
 <hr>
 
-# Why Use Dane?
+# Why Use DANE?
 
 DANE provides two core functionalities:
 
@@ -20,7 +20,7 @@ You can easily hack the tool to run custom scripts, custom data collection tools
 Our tool establishes Docker containers with configurable network conditions,
 then runs target behaviors such as browsing the internet, and collects data on
 the network traffic generated using
-[network-stats](https://github.com/parkeraddison/network-stats/tree/5e4173d310faf40b7f35262e0a18e447ba91e5dc).
+[network-stats](https://github.com/Viasat/network-stats).
 
 To use the tool, you must configure your desired network conditions and behaviors.
 
@@ -109,7 +109,7 @@ make stop
 
 ### Example
 
-![](../docs/media/demo.gif)
+![](media/demo.gif)
 
 ### Data
 
@@ -117,7 +117,7 @@ After the tool has been stopped, data can be found in `data/`.
 
 ### FAQ
 
-1. **The tool isn't working. It fails silently, or fails to launch behaviors or network-stats.**
+1. The tool isn't working. It fails silently, or fails to launch behaviors or network-stats.
    Make sure that all submodules have been cloned. You can do this by running
    ```bash
    git submodule update --init --recursive
@@ -125,7 +125,7 @@ After the tool has been stopped, data can be found in `data/`.
 
 ### Citing
 
-If you choose to use this tool, please cite it with the following BibTeX entry: **WIP**
+If you choose to use this tool, please cite it with the following BibTeX entry:
 
 ```bibtex
 @misc{tbd2021,
@@ -141,18 +141,20 @@ If you choose to use this tool, please cite it with the following BibTeX entry: 
 
 # Proof of Concept
 
+Check out an example of some work that can be done with DANE!
+
 (TODO - Link to Analysis Report)
 
 # Contributing
 
 See something you'd like improved? Better yet, have some improvements coded up locally you'd like to contribute?
 
-We welcome you to **submit an Issue** or **make a Pull Request** detailing your ideas!
+We welcome you to submit an Issue or make a Pull Request detailing your ideas!
 
 # Acknowledgements
 
-This project was originally created in affiliation with the **Halıcıoğlu Data Science Institute**'s data science program at UC San Diego.  
-https://hdsi.ucsd.edu/, https://dsc-capstone.github.io/
+This project was originally created in affiliation with the Halıcıoğlu Data Science Institute's data science program at UC San Diego.  
+(https://hdsi.ucsd.edu/), (https://dsc-capstone.github.io/)
 
-DANE was motivated and developed with the generous support of **Viasat**.  
-https://viasat.com/
+DANE was motivated and developed with the generous support of Viasat.  
+(https://viasat.com/)
