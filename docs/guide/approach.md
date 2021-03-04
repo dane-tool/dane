@@ -28,7 +28,7 @@ There are four main types of Docker services that are used while the tool is run
 
 #### Software
 
-Clients have software that enables them to access the internet and use it.
+Clients have software that enables them to access the internet and use it. Each client generates and collects its own network traffic data in isolation from the other clients. This approach enables a high degree of parallelization in data collection.
 
 - Firefox -- web browser
 - Selenium -- web automation, uses the Python API
@@ -43,7 +43,40 @@ Since the Dockerfile which defines these software dependencies is kept locally, 
 
 During a tool run, a client is created for each combination of *behavior* and *condition* specified in your configuration.
 
-Each client generates and collects its own network traffic data in isolation from the other clients. This approach enables a high degree of parallelization in data collection.
+### Router
+
+'Router' containers act like their physical namesake, they only care about networking.
+
+<center><img src='../../media/router-icon.png' height=80></center>
+
+#### Responsibilities
+
+- Route communications between clients and the Internet
+- Configure the network conditions for clients connected to it -- emulate conditions like latency and bandwidth
+
+#### Software
+
+The only software needed for a router is to route packets and emulate conditions.
+
+- iptables -- to route packets between the internal network and the Internet
+- iproute2 -- includes `tc` (traffic controller) to emulate conditions
+
+### Usage
+
+During a tool run, a router is created for each *condition* specified in your configuration.
+
+### Network
+
+DANE utilizes Docker-created networks to serve as the connection between clients and routers. This allows for multiple different network conditions to be present on a single local machine (the "host") while still remaining isolated from each other and not affecting the host's network connection.
+
+<center><img src='../../media/network-icon.png' height=80></center>
+
+As networks are not containers, they do not have any software or responsibilities -- other than to just exist!
+
+#### Usage
+
+During a tool run, a network is created for each *condition* specified in your configuration.
+
 
 **(WIP)**
 
