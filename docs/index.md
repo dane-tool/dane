@@ -1,4 +1,4 @@
- <link rel="shortcut icon" type="media/dane-transparent-small.png" href="favicon.ico">
+ <link rel="media/dane-transparent-small.png" type="image/png" href="favicon.png">
 <h1 align="center"><b>DANE - Data Automation and Network Emulation Tool</b> </h1>
 <hr>
 
