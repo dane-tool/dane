@@ -77,6 +77,31 @@ As networks are not containers, they do not have any software or responsibilitie
 
 During a tool run, a network is created for each *condition* specified in your configuration.
 
+### Daemon
+
+The 'daemon' container acts as a manager to all other containers. The daemon tells all other containers when to run their commands and scripts, and is therefore at the core of the automation capabilities of this tool.
+
+<center><img src='../../media/daemon-icon.png' height=80></center>
+
+#### Responsibilities
+
+- Instruct routers to set up conditions based on configuration
+- Instruct clients to run behaviors scripts based on configuration, and to run collection scripts
+- Instruct clients to run additional commands like VPN connections or additional software
+- Interrupt and tear down all containers when tool use is finished
+
+#### Software
+
+The daemon doesn't do much on its own, but it needs to be able to manage other Docker containers.
+
+- Docker
+- Python -- uses the Docker API and runs the management script
+
+#### Usage
+
+During a tool run, a single daemon is created.
+
+The daemon tells all other containers when to run their commands and scripts, and is therefore at the core of the automation capabilities of this tool.
 
 **(WIP)**
 
