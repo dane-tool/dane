@@ -1,0 +1,28 @@
+{%- comment %} Modified from https://github.com/rundocs/jekyll-rtd-theme/blob/0de2127e5b738018e199b632eaeb6cf5fcf55a0a/_includes/common/links.liquid to change favicon {% endcomment %}
+
+{%- comment %} dns-prefetch {% endcomment %}
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+{%- comment %} canonical link {% endcomment -%}
+{%- if prev -%}
+    <link rel="prev" href="{{ prev.url | absolute_url }}">
+{%- endif -%}
+
+{%- if next -%}
+    <link rel="next" href="{{ next.url | absolute_url }}">
+{%- endif -%}
+
+<link rel="canonical" href="{{ schema_surl }}">
+
+{%- comment %} favicon icon {% endcomment -%}
+<link rel="icon" type="image/png" href="{{ site.baseurl }}/assets/images/favicon.png">
+{%- comment %} alternate {% endcomment -%}
+<link rel="icon" type="image/png" href="{{ site.baseurl }}/assets/images/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="{{ site.baseurl }}/assets/images/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="{{ site.baseurl }}/assets/images/favicon-96x96.png" sizes="96x96">
+
+{%- comment %} safari {% endcomment -%}
+<link rel="mask-icon" href="{{ site.baseurl }}/assets/images/favicon.svg" color="{{ theme_color }}">
+
+{%- comment %} apple-touch-icon {% endcomment -%}
+<link rel="apple-touch-icon" href="{{ site.baseurl }}/assets/images/apple-touch-icon-300x300.jpg">
