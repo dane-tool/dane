@@ -1,3 +1,22 @@
 title: DANE - Data Automation and Network Emulation Tool
-theme: jekyll-theme-leap-day
+description: Generate network communication data for target tasks in diverse network conditions.
 
+remote_theme: rundocs/jekyll-rtd-theme
+
+exclude:
+  - README.md
+
+plugins:
+  # Necessary to use the ReadTheDocs theme
+  - jekyll-remote-theme
+  # Added by GitHub pages by default. Should have no effect on deployment, but
+  # allows for local building.
+  - jekyll-coffeescript
+  - jekyll-default-layout
+  - jekyll-gist
+  - jekyll-github-metadata
+  - jekyll-optional-front-matter
+  - jekyll-paginate
+  - jekyll-readme-index
+  - jekyll-titles-from-headings
+  - jekyll-relative-links
