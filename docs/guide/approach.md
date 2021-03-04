@@ -43,6 +43,7 @@ Since the Dockerfile which defines these software dependencies is kept locally, 
 
 During a tool run, a client is created for each combination of *behavior* and *condition* specified in your configuration.
 
+---
 ### Router
 
 'Router' containers act like their physical namesake, they only care about networking.
@@ -61,10 +62,11 @@ The only software needed for a router is to route packets and emulate conditions
 - iptables -- to route packets between the internal network and the Internet
 - iproute2 -- includes `tc` (traffic controller) to emulate conditions
 
-### Usage
+#### Usage
 
 During a tool run, a router is created for each *condition* specified in your configuration.
 
+---
 ### Network
 
 DANE utilizes Docker-created networks to serve as the connection between clients and routers. This allows for multiple different network conditions to be present on a single local machine (the "host") while still remaining isolated from each other and not affecting the host's network connection.
@@ -77,6 +79,7 @@ As networks are not containers, they do not have any software or responsibilitie
 
 During a tool run, a network is created for each *condition* specified in your configuration.
 
+---
 ### Daemon
 
 The 'daemon' container acts as a manager to all other containers. The daemon tells all other containers when to run their commands and scripts, and is therefore at the core of the automation capabilities of this tool.
@@ -101,11 +104,14 @@ The daemon doesn't do much on its own, but it needs to be able to manage other D
 
 During a tool run, a single daemon is created.
 
-The daemon tells all other containers when to run their commands and scripts, and is therefore at the core of the automation capabilities of this tool.
+## Networking Layout
 
 **(WIP)**
 
-- three services -- client (user-like behavior), router (network conditions), daemon (manager)
-- networking setup
-- configuration setup
+![](../media/network-layout.svg)
 
+## Configuration and Tool Pipeline
+
+**(WIP)**
+
+![](../../docs/media/config-pipeline.svg)
