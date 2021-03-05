@@ -12,10 +12,11 @@ To develop this locally, a couple steps need to be taken:
 
 2. Add a Gemfile to this directory (/docs). Just `touch Gemfile`, no need to have any content.
 3. Run `gem install github-pages jekyll-remote-theme`
-4. Run `bundle add github-pages jekyll-remote-theme`
+4. Run `gem install jekyll-rtd-theme --version "2.0.10" --source "https://rubygems.pkg.github.com/rundocs"`
+5. Run `bundle add github-pages jekyll-remote-theme jekyll-rtd-theme`
 
-When you want to look at the site, run `bundle exec jekyll serve`.
+When you want to look at the site, run `bundle exec jekyll serve --livereload`.
 
-There are currently some issues to work out with the remote theme. The site builds just fine the first time around, but after it watches a change it complains that it can't find the remote theme. For now we just interrupt and re-run the serve command whenever we want to see a change!
+See https://github.com/rundocs/jekyll-rtd-theme for the theme and configuration options.
 
-See https://github.com/rundocs/jekyll-rtd-theme for the theme.
+In general, if there is some component you want changed just find the liquid file which defines it and overwrite it (e.g. add a new file to `_includes/...`, copy the contents from the repo, and edit the lines you want changed.)
