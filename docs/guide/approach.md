@@ -124,6 +124,20 @@ Furthermore, the router can limit the rate of packet flow egress on their interf
 
 ## Configuration and Tool Pipeline
 
-**(WIP)**
+Below we'll get a sense of how the entire tool is run when you issue a `make start` command, starting with your configuration file and ending up with the whole slew of services and networking layout we discussed above.
 
 ![](../../docs/media/config-pipeline.svg)
+
+Let's work backwards.
+
+Within each condition group we have the network layout seen above, each with a unique latency and bandwidth combination specified in your *conditions* config, and with a client container for each behavior in your *behaviors* config.
+
+All of these groups of routers, networks, and clients are managed by the daemon -- which tells the routers to set up their target conditions and tells the clients to connect to each of their respective routers, start their behavior scripts, and start collecting data, etc.
+
+In order for the daemon to know know what conditions to request from the router and what behaviors to request from the clients, it utilizes 'labels' from a [Docker Compose](https://docs.docker.com/compose/) file.
+
+A compose file allows us to define and start all of our containers and networks at once. Technically, the compose file is run with the command `make raw`. It specifies which networks each container should connect to, which image to use, what the container name should be, what local files the container should be able to access, etc. Key-value pairs of metadata, called 'labels' can also be specified for each container in the compose file. When the daemon sees a router with the label "com.dane.tc.latency: 50ms" it knows to ask that router for 50ms of latency. Similarly, when the daemon sees a client with the label "com.dane.behavior: streaming", it knows to tell that client to run the streaming starter script.
+
+Since it would be annoying (and not very automated) to need to write this compose file by hand each time we want to run the tool, we leverage a minimal Docker container which parses your configuration file and writes the compose file for us. This happens with the command `make compose`.
+
+To wrap it all up, when we run `make start`, both the `compose` and `raw` targets are run sequentially, producing the final tool pipeline seen above.
