@@ -145,7 +145,9 @@ def setup_client(client, routers=[]):
     # If the label for the client says it's not enabled, don't run this!
     is_vpn_enabled = client.labels.get(LABEL_PREFIX+'vpn.enabled')
     # Note that labels are always treated as strings!
-    if is_vpn_enabled != 'False':
+    if is_vpn_enabled == 'True':
+
+        logging.info(f'Client `{client.name}` connecting to VPN...')
 
         server = client.labels.get(LABEL_PREFIX+'vpn.server') or 'vpn.ucsd.edu'
 
@@ -233,16 +235,16 @@ def setup_client(client, routers=[]):
     # bandwidth = router.labels.get(LABEL_PREFIX+'tc.bandwidth')
     # logging.info(f'{latency} {bandwidth}')
 
-    details = f'{latency}-{bandwidth}-{behavior}'
+    details = f'{latency}-{bandwidth}-{behavior.replace("/", ".")}'
 
-    network_stats_command = f'python scripts/client/collection.py {details}'
+    network_stats_command = f"python scripts/client/collection.py '{details}'"
 
     client.exec_run(
         redirect_to_out(network_stats_command),
         detach=True
     )
 
-    logging.info(f'Network stats on `{client.name}` running.')
+    logging.info(f'Network stats on `{client.name}` running as {details}.')
 
 def teardown_client(client):
     """
