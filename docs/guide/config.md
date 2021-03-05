@@ -22,7 +22,7 @@ List of values. Possible values:
 | `ping`      | Ping a DNS server once every three seconds. Great for testing purposes.                               |
 | `browsing`  | Run a script to endlessly browse Twitter.                                 |
 | `streaming` | Run a script to endlessly watch YouTube.                                  |
-| `custom/<filename.py>` | Run a custom Python script. See [Using Custom Scripts](3_extending.md).
+| `custom/<filename.py>` | Run a custom Python script. See [Using Custom Scripts](extending.md).
 
 ## Conditions
 
