@@ -18,7 +18,7 @@ There are four main types of Docker services that are used while the tool is run
 
 'Client' containers act like internet users, they use the Internet and create the raw data like a person would.
 
-<center><img src='../../media/client-icon.png' height=80></center>
+<center><img src='../media/client-icon.png' height=80></center>
 
 #### Responsibilities
 
@@ -48,7 +48,7 @@ During a tool run, a client is created for each combination of *behavior* and *c
 
 'Router' containers act like their physical namesake, they only care about networking.
 
-<center><img src='../../media/router-icon.png' height=80></center>
+<center><img src='../media/router-icon.png' height=80></center>
 
 #### Responsibilities
 
@@ -71,7 +71,7 @@ During a tool run, a router is created for each *condition* specified in your co
 
 DANE utilizes Docker-created networks to serve as the connection between clients and routers. This allows for multiple different network conditions to be present on a single local machine (the "host") while still remaining isolated from each other and not affecting the host's network connection.
 
-<center><img src='../../media/network-icon.png' height=80></center>
+<center><img src='../media/network-icon.png' height=80></center>
 
 As networks are not containers, they do not have any software or responsibilities -- other than to just exist!
 
@@ -84,7 +84,7 @@ During a tool run, a network is created for each *condition* specified in your c
 
 The 'daemon' container acts as a manager to all other containers. The daemon tells all other containers when to run their commands and scripts, and is therefore at the core of the automation capabilities of this tool.
 
-<center><img src='../../media/daemon-icon.png' height=80></center>
+<center><img src='../media/daemon-icon.png' height=80></center>
 
 #### Responsibilities
 
@@ -126,7 +126,7 @@ Furthermore, the router can limit the rate of packet flow egress on their interf
 
 Below we'll get a sense of how the entire tool is run when you issue a `make start` command, starting with your configuration file and ending up with the whole slew of services and networking layout we discussed above.
 
-![](../../docs/media/config-pipeline.svg)
+![](../media/config-pipeline.svg)
 
 Let's work backwards.
 
