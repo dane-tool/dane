@@ -106,9 +106,21 @@ During a tool run, a single daemon is created.
 
 ## Networking Layout
 
-**(WIP)**
+To create effective, realistic looking network emulation which supports Linux *and* Windows and Mac (both of which have an additional virtualization layer which renders many network emulation attempts futile), we essentially mimic a real world home network setup with our Docker services.
 
 ![](../media/network-layout.svg)
+
+### Network interfaces
+Client containers only have a network interface connected to an internal Docker-created network, and use their assigned router as their default gateway.
+
+Routers have interfaces connected to both the internal network and the external Internet.
+
+Nothing ever effects your local machine's interface with the Internet (although if you have multiple 'people' streaming videos on your home network you'll still probably see your speeds drop -- they are ultimately using your internet connection, after all!).
+
+### Emulating conditions
+This layout allows the router to exhibit fine control over the network conditions seen by the clients. The router can control latency, packet loss, or other packet-level conditions on their interface to the Internet, which in turn dictates how packets arrive to the internal network.
+
+Furthermore, the router can limit the rate of packet flow egress on their interface connected to the internal network. If the router limits the rate it allows itself to send packets to the internal network, then to clients this appears like a bandwidth restriction to download speeds! (This is exciting because ingress bandwidth limiting is traditionally not possible without an [IFB device](https://wiki.linuxfoundation.org/networking/ifb), which neither Windows nor Mac containers support.)
 
 ## Configuration and Tool Pipeline
 
