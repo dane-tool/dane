@@ -4,37 +4,105 @@ sort: 1
 
 # Tool Quickstart
 
-To use the tool, you must configure your desired network conditions and behaviors.
+Setting up DANE for a first time should be relatively straightforward, we'll get you collecting some network traffic data in no time.
 
-Source code for the tool can be found at [network-data-generation](https://github.com/dane-tool/dane).
+To use the tool: make sure you have the requirements, download the code, build the Docker images locally, then specify your configuration for desired network conditions and behaviors.
+
+If you're interested in how the tool works, see [How It Works](approach.md). To look at the source code, see [https://github.com/dane-tool/dane](https://github.com/dane-tool/dane).
 
 ## Requirements
 
-The data collcetion tool runs on Linux. You will need:
+DANE supports Windows, Mac, and Linux as long as the current version of Docker is available.
 
 - [Docker 19.03+](https://docs.docker.com/get-docker/)
 - [Docker Compose 1.27+](https://docs.docker.com/compose/install/)
 - [GNU Make](https://www.gnu.org/software/make/)
 
+```tip
+- For Mac, I recommend using Homebrew to `brew install make`
+- For Windows, I recommend using [GitBash](https://git-scm.com/downloads) as your terminal and using Chocolatey to `choco install make`
+```
+```note
+If you are using Windows you must use the Hyper-V backend for Docker. Since WSL2 lacks support for network emulation (see [WSL issue #6065](https://github.com/microsoft/WSL/issues/6065)) and Windows Home does not have access to Hyper-V, Windows Home is not supported.
+```
+
 ## Getting Started
 
-You can start using this tool and conducting analysis of different network conditions by running:
+### Download the tool
 
+First we need to download DANE:
 ```bash
 git clone \
 https://github.com/dane-tool/dane.git \
 --recursive
 ```
 
-## Environment file and secrets
+### Build images
+
+A handful of Docker images are built locally. This will take a few minutes if it's your very first time, so let's start the process now then move on to configuration while we wait.
+
+Simply navigate into the directory you just cloned and run:
+```bash
+cd dane
+make build
+```
+
+### Configuration
+
+It's time to specify what kind of client behaviors and network conditions we want to see!
+
+Open up the `config.json` file and set the list of behaviors to your desired client behaviors. Try "ping", "streaming", or "browsing" to use some of our built in starting behaviors. Or, write a custom script and run it by specifying "custom/filename.py".
+
+Set the list of condition objects to have your desired number of networks and desired latency and bandwidth in each network as "_ms" and "_Mbit" values.
+
+Specify if you want your clients to connect a VPN.
+
+Your final config file should look similar to the following example, which ultimately produces one containers each in a "good" and "bad" network:
+```json
+{
+    "behaviors": [
+        "ping"
+    ],
+    "conditions": [
+        {
+            "latency": "200ms",
+            "bandwidth": "5Mbit"
+        },
+        {
+            "latency": "20ms",
+            "bandwidth": "50Mbit"
+        }
+    ],
+    "vpn": {
+        "enabled": true,
+        "server": "vpn.ucsd.edu"
+    },
+    ...
+}
+```
+
+```tip
+Any configured conditions which are better than the conditions of your home network will fall back to the conditions of your home network.
+
+DANE is pretty magical, but it won't be able to create an internal network which exceeds your own local conditions!
+
+If you'd like to configure a network to have the same conditions as your home network, you can configure values like "0ms" and "999Mbit". 
+```
+
+### Environment file (secrets)
 
 The containers will need secret variables that store things like VPN or website login credentials.
 
-Please create a file named `.env` and place it in this directory. Inside the file, add the login information for your VPN:
+Please create a file named `.env` and place it in the 'dane' directory. You can easily create an empty file with a 'touch' command:
+```bash
+touch .env
+```
+
+Inside the file, add the login information for your VPN if you have `vpn.enabled: true` in your config.
 
 ```
 VPN_USERNAME=<your username>
-VPN_USERGROUP=<the 'group' to use for the VPN -- probably "2-Step Secured - allthruucsd">
+VPN_USERGROUP=<the login group for VPN access>
 VPN_PASSWORD=<your password>
 ```
 
@@ -52,10 +120,10 @@ When you're done collecting data, open a new terminal in this directory and run
 make stop
 ```
 
-## Example
-
-![](../media/demo.gif)
-
 ## Data
 
 After the tool has been stopped, data can be found in `data/`.
+
+## Example
+
+![](../media/demo.gif)

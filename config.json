@@ -17,7 +17,7 @@
         "enabled": true,
         "server": "vpn.ucsd.edu"
     },
-    "client": {
+    "system": {
         "shared_memory_size": "2gb"
     }
 }

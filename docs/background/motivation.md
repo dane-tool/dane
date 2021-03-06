@@ -14,4 +14,4 @@ DANE provides two core functionalities:
 
    Data representation is an increasingly relevant issue in all fields of data science, but generating a dataset while connected to a fixed network doesn't capture diversity in network conditions—in a single file, you can configure DANE to emulate a variety of network conditions, including latency and bandwidth.
 
-You can easily hack the tool to run custom scripts, custom data collection tools, and other custom software dependencies which support your particular research interest.
+By default DANE utilizes a VPN connection and collects data using [network-stats](https://github.com/Viasat/network-stats/), but these choices are modifiable. You can easily hack the tool to run custom scripts, custom data collection tools, and other custom software dependencies which support your particular research interest.

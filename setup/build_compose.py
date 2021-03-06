@@ -97,7 +97,7 @@ def main(tool_dir, config_file, env_file, data_dir):
             client['labels']['com.dane.vpn.server'] = config['vpn']['server']
 
             # Specify shared memory
-            client['shm_size'] = config['client']['shared_memory_size']
+            client['shm_size'] = config['system']['shared_memory_size']
 
             # NOTE: This doesn't handle duplicates/replicas. The service name
             # will be the same and thus will share the same key in the dict.
