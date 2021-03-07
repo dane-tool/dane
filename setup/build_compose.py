@@ -30,6 +30,18 @@ import yaml
 from pathlib import Path
 
 def main(tool_dir, config_file, env_file, data_dir):
+
+    print("""
+Hello! Welcome to DANE.
+  ____    _    _   _ _____       __/ \    
+ |  _ \  / \  | \ | | ____|  ___/@    )   
+ | | | |/ _ \ |  \| |  _|   O         \   
+ | |_| / ___ \| |\  | |___   \_____)   \  
+ |____/_/   \_\_| \_|_____|   U   \_____\ 
+""")
+
+    if config_file is None:
+        config_file = str(Path(tool_dir, 'config.json'))
     
     with open(config_file, 'r') as infile:
         config = json.load(infile)
@@ -54,6 +66,36 @@ def main(tool_dir, config_file, env_file, data_dir):
     #
     # Within each set of network conditions, add `client` services for each target
     # behavior, connected to the proper network.
+
+    # The env and data paths are used in the Compose file and are therefore
+    # relative to the `built` directory in the tool. If the provided path is not
+    # relative then it must be absolute.
+
+    # We should also check that the env file exists.
+    if env_file is None:
+        
+        path_to_check = Path(tool_dir, '.env')
+
+        if not path_to_check.exists():
+            print(f"""
+Looks like your environment file doesn't exist yet.
+Path: {path_to_check}
+
+We'll go ahead and create an empty file for you, but make sure to fill it in
+with your login credentials if you plan on using a VPN! Check the documentation.
+""")
+            path_to_check.touch()
+
+        env_file = '../.env'
+    else:
+        env_file = str(Path(env_file).absolute())
+
+    if data_dir is None:
+        data_dir = '../data/'
+    else:
+        data_dir = str(Path(data_dir).absolute())
+
+    
     for condition in conditions: # -- Networks, routers
 
         latency = condition['latency']
@@ -87,7 +129,7 @@ def main(tool_dir, config_file, env_file, data_dir):
             client['depends_on'].append(router_name)
             client['networks'].append(network_name)
             client['labels']['com.dane.behavior'] = behavior
-
+            
             client['env_file'].append(env_file)
             client['volumes'].append(f'{data_dir}:/data/')
 
@@ -159,20 +201,5 @@ if __name__ == '__main__':
     config_file = args.config
     env_file = args.env
     data_dir = args.output
-
-    if config_file is None:
-        config_file = str(Path(tool_dir, 'config.json'))
-
-    # These paths are used in the Compose file and are therefore relative to the
-    # `built` directory in the tool. If not relative, must be absolute.
-    if env_file is None:
-        env_file = '../.env'
-    else:
-        env_file = str(Path(env_file).absolute())
-    
-    if data_dir is None:
-        data_dir = '../data/'
-    else:
-        data_dir = str(Path(data_dir).absolute())
 
     main(tool_dir, config_file, env_file, data_dir)
