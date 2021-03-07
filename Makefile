@@ -36,19 +36,28 @@ down:
 	--remove-orphans
 
 .PHONY: compose
+define first_time_msg
+********************************************************************************
+Looks like this may be your first time running DANE! Give us a moment to get the
+tool ready for you. We just need to pull in a Docker image from Docker Hub.
+********************************************************************************
+endef
+export first_time_msg
 tool_dir ?= 
 config_file ?= 
+compose_image ?= parkeraddison/dane-compose
 compose:
-# Build the compose file from given configuration in config.py. We'll check if
-# it's present locally and if not we'll build it.
-ifeq ($(shell docker images -q dane-compose),)
-	$(MAKE) build only=compose
+# Build the compose file from given configuration in config.py. We'll just use
+# the image that's hosted on Docker Hub.
+ifeq ($(shell docker images -q $(compose_image)),)
+	@echo "$$first_time_msg"
+	@docker pull $(compose_image)
 endif
 	@docker run \
 	-it \
 	--rm \
 	-v "$(PWD):/home" \
-	dane-compose \
+	$(compose_image) \
 	python setup/build_compose.py \
 	$(if $(tool_dir),--src $(tool_dir),) \
 	$(if $(config_file),-config $(config_file),)
