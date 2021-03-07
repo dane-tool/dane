@@ -103,6 +103,20 @@ def main(tool_dir, config_file, env_file, data_dir):
             # will be the same and thus will share the same key in the dict.
             compose['services'][client_name] = client
 
+    # If we're configured to use local images, then remove the Docker Hub repo
+    # prefix from all image entries.
+    if config['system']['use_local_images']:
+        print("""
+Looks like you want to use local container images -- nice! Just make sure that
+you've run `make build` at some point to build those local images.
+
+If you've updated a local Dockerfile since then, run
+  `make build only=<name_of_service>`
+to rebuild just that image.
+""")
+        for service in compose['services']:
+            service['image'] = service['image'].split('/')[-1]
+
     built_file = Path(tool_dir, 'built/docker-compose.yml')
     built_file.parent.mkdir(parents=True, exist_ok=True)
     with open(built_file, 'w') as outfile:

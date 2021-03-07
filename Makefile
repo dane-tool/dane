@@ -12,7 +12,7 @@ start run up: compose raw
 .PHONY: raw
 raw:
 # Start up all containers using an already created compose file.
-	docker-compose \
+	@docker-compose \
 	-p dane -f built/docker-compose.yml \
 	$(if \
 		$(filter $(shell docker version -f {{.Client.Os}}),linux darwin),\
@@ -30,7 +30,7 @@ stop interrupt:
 
 .PHONY: down
 down:
-	docker-compose \
+	@docker-compose \
 	-p dane -f built/docker-compose.yml \
 	down \
 	--remove-orphans
@@ -39,8 +39,13 @@ down:
 tool_dir ?= 
 config_file ?= 
 compose:
-# Build the compose file from given configuration in config.py
-	docker run \
+# Build the compose file from given configuration in config.py. We'll check if
+# it's present locally and if not we'll build it.
+ifeq ($(shell docker images -q dane-compose),)
+	$(MAKE) build only=compose
+endif
+	@docker run \
+	-it \
 	--rm \
 	-v "$(PWD):/home" \
 	dane-compose \
@@ -71,15 +76,10 @@ ifeq ($(only),all)
 	-t dane-router:$(tag) .
 
 	docker build \
-	-f Dockerfile \
+	-f docker/compose/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
 	-t dane-compose:$(tag) .
 
-else ifeq ($(only),compose)
-	docker build \
-	-f Dockerfile \
-	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t dane-compose:$(tag) .
 else
 	docker build \
 	-f docker/$(only)/Dockerfile \

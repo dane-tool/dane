@@ -18,6 +18,7 @@
         "server": "vpn.ucsd.edu"
     },
     "system": {
-        "shared_memory_size": "2gb"
+        "shared_memory_size": "2gb",
+        "use_local_images": false
     }
 }

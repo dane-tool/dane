@@ -50,3 +50,4 @@ Nested object. Keys:
 | Key | Description |
 | --- | --- |
 | shared_memory_size | Gigabytes. The shared memory size for all client containers in a tool run. E.g. `'2gb'`. If this is too low, clients may crash due to out-of-memory errors. You cannot exceed the amount of memory available to your host machine. In general, 2 GB is a good size! |
+| use_local_images | `true` or `false`. Whether or not to use locally built Docker images versus those hosted on Docker Hub. If you want to hack the tool to use custom software, set this to true. |

@@ -5,7 +5,7 @@
 client:
   depends_on:
     - daemon
-  image: dane-client
+  image: parkeraddison/dane-client
   networks: []
   cap_add:
     - NET_ADMIN
@@ -19,7 +19,7 @@ client:
 router:
   depends_on:
     - daemon
-  image: dane-router
+  image: parkeraddison/dane-router
   networks:
     default:
       priority: 1000 # Ensure we use the eth0 interface (doesn't work in practice)
