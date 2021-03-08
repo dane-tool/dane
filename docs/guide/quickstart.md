@@ -24,6 +24,8 @@ DANE supports Windows, Mac, and Linux as long as the current version of Docker i
 ```
 ```note
 If you are using Windows you must use the Hyper-V backend for Docker. Since WSL2 lacks support for network emulation (see [WSL issue #6065](https://github.com/microsoft/WSL/issues/6065)) and Windows Home does not have access to Hyper-V, Windows Home is not supported.
+
+On Windows, you must go to Docker Desktop settings > General and enable "*Expose daemon on tcp://localhost:2375 without TLS*".
 ```
 
 ## Getting Started
@@ -37,16 +39,6 @@ https://github.com/dane-tool/dane.git \
 --recursive
 ```
 
-### Build images
-
-A handful of Docker images are built locally. This will take a few minutes if it's your very first time, so let's start the process now then move on to configuration while we wait.
-
-Simply navigate into the directory you just cloned and run:
-```bash
-cd dane
-make build
-```
-
 ### Configuration
 
 It's time to specify what kind of client behaviors and network conditions we want to see!
@@ -56,6 +48,10 @@ Open up the `config.json` file and set the list of behaviors to your desired cli
 Set the list of condition objects to have your desired number of networks and desired latency and bandwidth in each network as "_ms" and "_Mbit" values.
 
 Specify if you want your clients to connect a VPN.
+
+```note
+Many VPNs cause a bit of extra latency or reduced bandwidth, so your achieved conditions with a VPN enabled may differ slightly from your configuration.
+```
 
 Your final config file should look similar to the following example, which ultimately produces one containers each in a "good" and "bad" network:
 ```json

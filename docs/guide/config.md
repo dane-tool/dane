@@ -23,7 +23,7 @@ List of values. Possible values:
 | `ping`      | Ping a DNS server once every three seconds. Great for testing purposes.                               |
 | `browsing`  | Run a script to endlessly browse Twitter.                                 |
 | `streaming` | Run a script to endlessly watch YouTube.                                  |
-| `custom/<filename.py>` | Run a custom Python script. See [Using Custom Scripts](extending.md).
+| `custom/<filename.py>` | Run a custom Python script. See [Using Custom Scripts](custom-scripts.md).
 
 ## Conditions
 
@@ -50,4 +50,4 @@ Nested object. Keys:
 | Key | Description |
 | --- | --- |
 | shared_memory_size | Gigabytes. The shared memory size for all client containers in a tool run. E.g. `'2gb'`. If this is too low, clients may crash due to out-of-memory errors. You cannot exceed the amount of memory available to your host machine. In general, 2 GB is a good size! |
-| use_local_images | `true` or `false`. Whether or not to use locally built Docker images versus those hosted on Docker Hub. If you want to hack the tool to use custom software, set this to true. |
+| use_local_images | `true` or `false`. Whether or not to use locally built Docker images versus those hosted on Docker Hub. If you want to hack the tool to use custom software, set this to true. See [Using Local Images](local-images.md). |
