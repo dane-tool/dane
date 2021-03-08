@@ -12,7 +12,7 @@ start run up: compose raw
 .PHONY: raw
 raw:
 # Start up all containers using an already created compose file.
-	docker-compose \
+	@docker-compose \
 	-p dane -f built/docker-compose.yml \
 	$(if \
 		$(filter $(shell docker version -f {{.Client.Os}}),linux darwin),\
@@ -30,20 +30,34 @@ stop interrupt:
 
 .PHONY: down
 down:
-	docker-compose \
+	@docker-compose \
 	-p dane -f built/docker-compose.yml \
 	down \
 	--remove-orphans
 
 .PHONY: compose
+define first_time_msg
+********************************************************************************
+Looks like this may be your first time running DANE! Give us a moment to get the
+tool ready for you. We just need to pull in a Docker image from Docker Hub.
+********************************************************************************
+endef
+export first_time_msg
 tool_dir ?= 
 config_file ?= 
+compose_image ?= parkeraddison/dane-compose
 compose:
-# Build the compose file from given configuration in config.py
-	docker run \
+# Build the compose file from given configuration in config.py. We'll just use
+# the image that's hosted on Docker Hub.
+ifeq ($(shell docker images -q $(compose_image)),)
+	@echo "$$first_time_msg"
+	@docker pull $(compose_image)
+endif
+	@docker run \
+	-it \
 	--rm \
 	-v "$(PWD):/home" \
-	dane-compose \
+	$(compose_image) \
 	python setup/build_compose.py \
 	$(if $(tool_dir),--src $(tool_dir),) \
 	$(if $(config_file),-config $(config_file),)
@@ -71,15 +85,10 @@ ifeq ($(only),all)
 	-t dane-router:$(tag) .
 
 	docker build \
-	-f Dockerfile \
+	-f docker/compose/Dockerfile \
 	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
 	-t dane-compose:$(tag) .
 
-else ifeq ($(only),compose)
-	docker build \
-	-f Dockerfile \
-	--build-arg BUILD_DATE="$(shell date --rfc-3339 seconds)" \
-	-t dane-compose:$(tag) .
 else
 	docker build \
 	-f docker/$(only)/Dockerfile \

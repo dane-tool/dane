@@ -30,6 +30,18 @@ import yaml
 from pathlib import Path
 
 def main(tool_dir, config_file, env_file, data_dir):
+
+    print("""
+Hello! Welcome to DANE.
+  ____    _    _   _ _____       __/ \    
+ |  _ \  / \  | \ | | ____|  ___/@    )   
+ | | | |/ _ \ |  \| |  _|   O         \   
+ | |_| / ___ \| |\  | |___   \_____)   \  
+ |____/_/   \_\_| \_|_____|   U   \_____\ 
+""")
+
+    if config_file is None:
+        config_file = str(Path(tool_dir, 'config.json'))
     
     with open(config_file, 'r') as infile:
         config = json.load(infile)
@@ -54,6 +66,50 @@ def main(tool_dir, config_file, env_file, data_dir):
     #
     # Within each set of network conditions, add `client` services for each target
     # behavior, connected to the proper network.
+
+    # The env and data paths are used in the Compose file and are therefore
+    # relative to the `built` directory in the tool. If the provided path is not
+    # relative then it must be absolute.
+
+    # We should also check that the env file exists.
+    if env_file is None:
+        
+        path_to_check = Path(tool_dir, '.env')
+
+        if not path_to_check.exists():
+            print(f"""
+Looks like your environment file doesn't exist yet. Path: {path_to_check}
+We'll go ahead and create the file for you.
+""")
+            with open(path_to_check, 'w') as outfile:
+                outfile.write("""
+VPN_USERNAME=
+VPN_USERGROUP=
+VPN_PASSWORD=
+""")
+            
+            if config['vpn']['enabled']:
+                print(f"""
+Since you have the VPN enabled, you'll need to add your login credentials now.
+If you need guidance, consult https://dane-tool.github.io/dane/guide/quickstart
+""")
+                input(f"Please add your VPN login credentials to {path_to_check} and press Enter when you're done.")
+
+            else:
+                print(f"""
+Make sure to add your login credentials to the file if you plan on using a VPN!
+""")
+
+        env_file = '../.env'
+    else:
+        env_file = str(Path(env_file).absolute())
+
+    if data_dir is None:
+        data_dir = '../data/'
+    else:
+        data_dir = str(Path(data_dir).absolute())
+
+    
     for condition in conditions: # -- Networks, routers
 
         latency = condition['latency']
@@ -87,7 +143,7 @@ def main(tool_dir, config_file, env_file, data_dir):
             client['depends_on'].append(router_name)
             client['networks'].append(network_name)
             client['labels']['com.dane.behavior'] = behavior
-
+            
             client['env_file'].append(env_file)
             client['volumes'].append(f'{data_dir}:/data/')
 
@@ -102,6 +158,20 @@ def main(tool_dir, config_file, env_file, data_dir):
             # NOTE: This doesn't handle duplicates/replicas. The service name
             # will be the same and thus will share the same key in the dict.
             compose['services'][client_name] = client
+
+    # If we're configured to use local images, then remove the Docker Hub repo
+    # prefix from all image entries.
+    if config['system']['use_local_images']:
+        print("""
+Looks like you want to use local container images -- nice! Just make sure that
+you've run `make build` at some point to build those local images.
+
+If you've updated a local Dockerfile since then, run
+  `make build only=<name_of_service>`
+to rebuild just that image.
+""")
+        for service in compose['services']:
+            service['image'] = service['image'].split('/')[-1]
 
     built_file = Path(tool_dir, 'built/docker-compose.yml')
     built_file.parent.mkdir(parents=True, exist_ok=True)
@@ -145,20 +215,5 @@ if __name__ == '__main__':
     config_file = args.config
     env_file = args.env
     data_dir = args.output
-
-    if config_file is None:
-        config_file = str(Path(tool_dir, 'config.json'))
-
-    # These paths are used in the Compose file and are therefore relative to the
-    # `built` directory in the tool. If not relative, must be absolute.
-    if env_file is None:
-        env_file = '../.env'
-    else:
-        env_file = str(Path(env_file).absolute())
-    
-    if data_dir is None:
-        data_dir = '../data/'
-    else:
-        data_dir = str(Path(data_dir).absolute())
 
     main(tool_dir, config_file, env_file, data_dir)
