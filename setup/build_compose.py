@@ -78,13 +78,27 @@ Hello! Welcome to DANE.
 
         if not path_to_check.exists():
             print(f"""
-Looks like your environment file doesn't exist yet.
-Path: {path_to_check}
-
-We'll go ahead and create an empty file for you, but make sure to fill it in
-with your login credentials if you plan on using a VPN! Check the documentation.
+Looks like your environment file doesn't exist yet. Path: {path_to_check}
+We'll go ahead and create the file for you.
 """)
-            path_to_check.touch()
+            with open(path_to_check, 'w') as outfile:
+                outfile.write("""
+VPN_USERNAME=
+VPN_USERGROUP=
+VPN_PASSWORD=
+""")
+            
+            if config['vpn']['enabled']:
+                print(f"""
+Since you have the VPN enabled, you'll need to add your login credentials now.
+If you need guidance, consult https://dane-tool.github.io/dane/guide/quickstart
+""")
+                input(f"Please add your VPN login credentials to {path_to_check} and press Enter when you're done.")
+
+            else:
+                print(f"""
+Make sure to add your login credentials to the file if you plan on using a VPN!
+""")
 
         env_file = '../.env'
     else:

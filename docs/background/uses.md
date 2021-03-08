@@ -14,5 +14,5 @@ sort: 2
   - You can use a different network monitoring tool, like [TShark](https://tshark.dev/) to collect full packet captures by modifying the client's Dockerfile and collection.py script
 - Collect data that resembles real-world client data
   - By modifying the client Dockerfile, you can have the container run background services that add realistic noise to your network data
-- See what different network conditions look like first hand
+- Use a browser window attached to emulated network conditions, see the user experience first hand
   - If you really want to hack the tool, you can connect a VNC to the client containers to run their browser windows as a GUI application!
