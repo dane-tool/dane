@@ -198,9 +198,9 @@ def setup_client(client, routers=[]):
     elif behavior == 'streaming':
         # This syntax needs to be used in order to run a single file as a
         # *module* so it can still utilize imports from its parent package.
-        behavior_command = 'python -m scripts.client.starter-scripts.streaming.youtube_selenium.py'
+        behavior_command = 'python scripts/client/starter-scripts/streaming/endless_youtube.py'
     elif behavior == 'browsing':
-        behavior_command = 'python scripts.client.starter-scripts.browsing.endless-scroll.py' 
+        behavior_command = 'python scripts/client/starter-scripts/browsing/endless_twitter.py' 
 
     # We allow custom scripts to be run when behavior is `custom/<filename.py>`,
     # in which case we tell the client to pip install any requirements and run

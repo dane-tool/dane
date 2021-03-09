@@ -47,33 +47,37 @@ Open up the `config.json` file and set the list of behaviors to your desired cli
 
 Set the list of condition objects to have your desired number of networks and desired latency and bandwidth in each network as "_ms" and "_Mbit" values.
 
-Specify if you want your clients to connect a VPN.
+Specify if you want your clients to connect a VPN and the desired VPN server.
 
 ```note
 Many VPNs cause a bit of extra latency or reduced bandwidth, so your achieved conditions with a VPN enabled may differ slightly from your configuration.
 ```
 
-Your final config file should look similar to the following example, which ultimately produces one containers each in a "good" and "bad" network:
+Your final config file should look similar to the following example, which ultimately produces four containers, two each in a "good" and "bad" network:
 ```json
 {
     "behaviors": [
-        "ping"
+        "browsing",
+        "streaming"
     ],
     "conditions": [
         {
-            "latency": "200ms",
-            "bandwidth": "5Mbit"
-        },
-        {
             "latency": "20ms",
             "bandwidth": "50Mbit"
+        },
+        {
+            "latency": "200ms",
+            "bandwidth": "5Mbit"
         }
     ],
     "vpn": {
         "enabled": true,
-        "server": "vpn.ucsd.edu"
+        "server": "<your VPN provider"
     },
-    ...
+    "system": {
+        "shared_memory_size": "2gb",
+        "use_local_images": false
+    }
 }
 ```
 
@@ -108,6 +112,10 @@ Once you're satisfied with your configuration, simply open a terminal to this di
 
 ```bash
 make
+```
+
+```note
+If you're using a VPN with 2-Factor Authentication, you'll need to authorize the connection for each of the clients as they connect!
 ```
 
 When you're done collecting data, open a new terminal in this directory and run

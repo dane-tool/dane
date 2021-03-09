@@ -5,17 +5,17 @@
     ],
     "conditions": [
         {
-            "latency": "200ms",
-            "bandwidth": "3Mbit"
+            "latency": "20ms",
+            "bandwidth": "50Mbit"
         },
         {
-            "latency": "0ms",
-            "bandwidth": "999Mbit"
+            "latency": "200ms",
+            "bandwidth": "5Mbit"
         }
     ],
     "vpn": {
         "enabled": true,
-        "server": "vpn.ucsd.edu"
+        "server": "vpn.your-vpn-provider.com"
     },
     "system": {
         "shared_memory_size": "2gb",
