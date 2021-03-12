@@ -3,4 +3,4 @@
 	url = https://github.com/dane-tool/starter-scripts.git
 [submodule "network-stats"]
 	path = scripts/network-stats
-	url = https://github.com/parkeraddison/network-stats.git
+	url = https://github.com/viasat/network-stats.git
